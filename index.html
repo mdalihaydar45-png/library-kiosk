@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>লাইব্রেরি কিয়স্ক</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Noto+Serif+Bengali:wght@600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.6/JsBarcode.all.min.js"></script>
+<script src="https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js"></script>
+<style>
+:root{
+  --bg:#f2f5f4; --surface:#ffffff; --ink:#14201f; --muted:#5b6b69; --line:#d9e2e0;
+  --accent:#0b6b5e; --accent-ink:#ffffff; --warn:#b45309; --bad:#b42318; --good:#1a7f4b;
+  --soft:#e3f0ed;
+  --font-display:"Noto Serif Bengali","Hind Siliguri",Georgia,serif;
+  --font-body:"Hind Siliguri","Noto Sans Bengali",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e1514; --surface:#162120; --ink:#e8f0ee; --muted:#9bb0ac; --line:#2a3b39;
+    --accent:#3fb8a3; --accent-ink:#06211c; --warn:#f0a04b; --bad:#ff8a7a; --good:#5fd39a; --soft:#1d3330;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0e1514; --surface:#162120; --ink:#e8f0ee; --muted:#9bb0ac; --line:#2a3b39;
+  --accent:#3fb8a3; --accent-ink:#06211c; --warn:#f0a04b; --bad:#ff8a7a; --good:#5fd39a; --soft:#1d3330;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:16px;line-height:1.55}
+h1,h2,h3{font-family:var(--font-display);text-wrap:balance;margin:0 0 .5rem;line-height:1.25}
+h2{font-size:1.35rem} h3{font-size:1.1rem}
+button,input,select{font:inherit;color:inherit}
+.wrap{max-width:1040px;margin:0 auto;padding:16px}
+.top{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between;padding-bottom:12px;border-bottom:1px solid var(--line);margin-bottom:16px}
+.brand{font-family:var(--font-display);font-weight:700;font-size:1.15rem}
+.brand small{display:block;font-family:var(--font-body);font-weight:400;font-size:.8rem;color:var(--muted)}
+.tabs{display:flex;flex-wrap:wrap;gap:6px}
+.tab{border:1px solid var(--line);background:var(--surface);padding:7px 14px;border-radius:8px;cursor:pointer}
+.tab[aria-current="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.right{display:flex;gap:8px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:var(--surface);padding:8px 16px;border-radius:8px;cursor:pointer;min-height:40px}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
+.btn.danger{color:var(--bad)}
+.btn.big{min-height:64px;font-size:1.2rem;padding:12px 24px;flex:1 1 200px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px}
+.tiles{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-bottom:16px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.tile b{display:block;font-size:1.6rem;font-variant-numeric:tabular-nums;font-family:var(--font-display)}
+.tile span{color:var(--muted);font-size:.85rem}
+.tile.alert{border-left:5px solid var(--bad)}
+label{display:block;font-size:.88rem;color:var(--muted);margin-bottom:4px}
+input,select{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface);min-height:42px}
+.field{margin-bottom:12px;min-width:0}
+input[type="date"]{-webkit-appearance:none;appearance:none;display:block;min-width:0;max-width:100%;text-align:left;line-height:1.2}
+.row{display:flex;gap:12px;flex-wrap:wrap}
+.row>*{flex:1 1 160px}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.tablewrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;min-width:560px}
+th,td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--line);vertical-align:middle}
+th{font-size:.8rem;color:var(--muted);font-weight:600;background:var(--bg)}
+tr:last-child td{border-bottom:0}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+.pill{display:inline-block;padding:2px 10px;border-radius:99px;font-size:.8rem;font-weight:600;background:var(--soft);color:var(--accent)}
+.pill.bad{background:color-mix(in srgb,var(--bad) 16%,transparent);color:var(--bad)}
+.muted{color:var(--muted)}
+.err{color:var(--bad);font-weight:600;margin:8px 0}
+.ok{color:var(--good);font-weight:600}
+.note{background:var(--soft);border-radius:10px;padding:10px 14px;font-size:.9rem;margin-bottom:16px}
+.kiosk{max-width:640px;margin:24px auto}
+.kiosk h1{font-size:1.8rem;text-align:center}
+.scanbox input{font-size:1.5rem;text-align:center;min-height:64px;letter-spacing:.06em}
+.bookhead{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start;margin-bottom:12px}
+.price{font-family:var(--font-display);font-size:1.6rem;font-weight:700;color:var(--accent)}
+.receipt{border:2px dashed var(--line);border-radius:12px;padding:18px;background:var(--surface)}
+.receipt dl{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;margin:12px 0}
+.receipt dt{color:var(--muted)} .receipt dd{margin:0;font-weight:600}
+.labels{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(190px,1fr))}
+.label{background:#fff;color:#000;border:1px solid var(--line);border-radius:8px;padding:8px;text-align:center;font-size:.78rem}
+.label svg{max-width:100%;height:auto}
+.auth{max-width:440px;margin:7vh auto}
+.lang{min-width:72px}
+.camwrap{position:relative;border-radius:12px;overflow:hidden;background:#000;aspect-ratio:4/3;margin-bottom:12px;max-width:100%}
+.camwrap video{width:100%;height:100%;object-fit:cover;display:block}
+.camwrap .frame{position:absolute;inset:22% 8%;border:3px solid #3fd6b8;border-radius:10px;box-shadow:0 0 0 999px rgba(0,0,0,.35)}
+.camwrap .tip{position:absolute;left:0;right:0;bottom:8px;text-align:center;color:#fff;font-size:.9rem}
+.scanmodes{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));margin-top:14px}
+.divider{border:0;border-top:1px solid var(--line);margin:16px 0}
+.busy{opacity:.6;pointer-events:none}
+@media (prefers-reduced-motion:no-preference){.card,.receipt{animation:rise .18s ease-out}}
+@keyframes rise{from{opacity:.4;transform:translateY(4px)}to{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<div id="app" class="wrap"></div>
+<script>
+"use strict";
+/* ---------- Supabase ---------- */
+const SUPABASE_URL = "https://hiexfcwaepvnlantpuml.supabase.co";
+const SUPABASE_KEY = "sb_publishable_u2j3AdiWb6Cj6blblHaU0g_M7bkc2mg"; // publishable key, safe in the browser (RLS protects the data)
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+/* ---------- translations ---------- */
+const L = {
+bn:{
+ appname:"লাইব্রেরি কিয়স্ক", cloud:"তথ্য অনলাইনে (Supabase) রাখা হয়, যেকোনো ডিভাইস থেকে লগইন করে দেখা যাবে।",
+ login:"লগইন", register:"নতুন লাইব্রেরি", email:"ইমেইল", password:"পাসওয়ার্ড (কমপক্ষে ৬ অক্ষর)", libname:"লাইব্রেরির নাম",
+ createLib:"লাইব্রেরি খুলুন", badLogin:"ইমেইল বা পাসওয়ার্ড ঠিক নেই।", fillAll:"সব ঘর পূরণ করুন।",
+ checkEmail:"আপনার ইমেইলে একটা নিশ্চিতকরণ লিংক পাঠানো হয়েছে। লিংকে ক্লিক করে তারপর লগইন করুন।",
+ loading:"লোড হচ্ছে…", netErr:"সার্ভারের সাথে যোগাযোগ হয়নি। ইন্টারনেট দেখে আবার চেষ্টা করুন।",
+ logout:"লগআউট", kiosk:"কিয়স্ক", books:"বই", members:"সদস্য", reports:"রিপোর্ট", settings:"সেটিংস",
+ lockKiosk:"কিয়স্ক মোড চালু", exitKiosk:"কিয়স্ক মোড বন্ধ", exitHint:"কিয়স্ক PIN বা পাসওয়ার্ড দিন", unlock:"খুলুন", wrongPass:"পাসওয়ার্ড ঠিক নেই।",
+ camStart:"ক্যামেরায় স্ক্যান", camStop:"ক্যামেরা বন্ধ", photoScan:"ছবি তুলে স্ক্যান", camHint:"বারকোডটি ক্যামেরার সামনে ধরুন",
+ camFail:"ক্যামেরা চালু করা যায়নি। ব্রাউজারে ক্যামেরার অনুমতি দিন, অথবা \"ছবি তুলে স্ক্যান\" ব্যবহার করুন।",
+ photoFail:"ছবিতে বারকোড পাওয়া যায়নি। কাছ থেকে, ভালো আলোয় আবার তুলুন।",
+ scanTitle:"বইয়ের বারকোড স্ক্যান করুন", scanHint:"স্ক্যানার বইয়ের পিছনের বারকোডে ধরুন। কোড হাতে লিখেও এন্টার দিতে পারেন।", scanBtn:"খুঁজুন",
+ notFound:"এই কোডের কোনো বই পাওয়া যায়নি।", by:"লেখক", avail:"এখন আছে", ofcopies:"মোট কপি",
+ borrow:"ধার নেব", buy:"কিনব", ret:"ফেরত দেব", back:"পিছনে", cancel:"বাতিল",
+ outOfStock:"এই বই এখন সবই ধারে আছে।", noStock:"কপি নেই।",
+ yourPhone:"আপনার ফোন নম্বর", yourName:"আপনার নাম", returnDate:"ফেরতের তারিখ", confirmBorrow:"ধার নিশ্চিত করুন",
+ confirmBuy:"কেনা নিশ্চিত করুন", payMethod:"টাকা দেওয়ার উপায়", cash:"নগদ", transfer:"ব্যাংক ট্রান্সফার", optional:"(ঐচ্ছিক)",
+ limitHit:"এই সদস্য সর্বোচ্চ বই ধার নিয়ে ফেলেছেন।", needNamePhone:"নাম ও ফোন নম্বর দিন।", datePast:"ফেরতের তারিখ আজকের পরে হতে হবে।",
+ loanReceipt:"ধারের রিসিপ্ট", invoice:"ইনভয়েস", receiptNo:"নম্বর", date:"তারিখ", book:"বই", member:"সদস্য", dueOn:"ফেরত দেবেন", amount:"টাকা", method:"উপায়",
+ thanks:"ধন্যবাদ। অনুগ্রহ করে তারিখের মধ্যে বইটি ফেরত দিন।", thanksBuy:"কেনার জন্য ধন্যবাদ।",
+ done:"শেষ", copyText:"টেক্সট কপি", copied:"কপি হয়েছে",
+ whoReturns:"কে ফেরত দিচ্ছেন?", noLoan:"এই বইয়ের কোনো চলমান ধার নেই।", returnedMsg:"বই ফেরত নেওয়া হয়েছে।", due:"শেষ তারিখ", markReturned:"ফেরত নিন",
+ isbn:"ISBN (বইয়ের পিছনের বারকোডের নম্বর)", labelsNote:"যেসব বইয়ে ISBN আছে, সেগুলোর পিছনের বারকোডই স্ক্যান হবে, স্টিকার লাগবে না। নিচে শুধু ISBN ছাড়া বইয়ের লেবেল।", allHaveIsbn:"সব বইয়ে ISBN আছে, কোনো লেবেল লাগবে না।", setPin:"কিয়স্ক PIN (৪ সংখ্যা, ফাঁকা রাখলে পাসওয়ার্ড)", pinBad:"PIN ঠিক ৪টি সংখ্যা হতে হবে।", isbnAdded:"এই ISBN-এর বই আগেই ছিল, কপি বাড়ানো হয়েছে।", isbnBad:"ISBN ১০ বা ১৩ সংখ্যার হতে হবে।",
+ addBook:"নতুন বই যোগ", title:"বইয়ের নাম", author:"লেখক", category:"বিভাগ", copies:"কপি", price:"দাম", add:"যোগ করুন", code:"কোড", remove:"মুছুন",
+ confirmRemove:"নিশ্চিত, মুছুন", removeBlocked:"এই বই বা সদস্যের ধারের ইতিহাস আছে, তাই মোছা যাবে না।", onLoanNoRemove:"ধারে থাকা বই মোছা যাবে না।",
+ labelsTitle:"বারকোড লেবেল", addMember:"নতুন সদস্য", name:"নাম", phone:"ফোন", openLoans:"চলমান ধার", phoneUsed:"এই ফোন নম্বরের সদস্য আগেই আছে।",
+ tBooks:"বইয়ের নাম", tCopies:"মোট কপি", tOnLoan:"ধারে আছে", tOverdue:"বকেয়া", tSales:"মোট বিক্রি",
+ overdueList:"বকেয়া তালিকা", daysLate:"দেরি (দিন)", noOverdue:"কোনো বকেয়া নেই।", currentLoans:"সব চলমান ধার", salesList:"বিক্রির তালিকা", noSales:"এখনো কোনো বিক্রি নেই।", noLoans:"কোনো চলমান ধার নেই।",
+ setLoanDays:"ধারের সময় (দিন)", setMaxLoans:"একজন সর্বোচ্চ কয়টি বই নিতে পারবেন", setCurrency:"মুদ্রার চিহ্ন", save:"সংরক্ষণ", saved:"সংরক্ষিত হয়েছে।",
+ emptyBooks:"এখনো কোনো বই নেই। নিচের ফর্ম দিয়ে প্রথম বইটি যোগ করুন।", refresh:"রিফ্রেশ"
+},
+en:{
+ appname:"Library Kiosk", cloud:"Data is stored online (Supabase), so you can sign in from any device.",
+ login:"Log in", register:"New library", email:"Email", password:"Password (at least 6 characters)", libname:"Library name",
+ createLib:"Create library", badLogin:"Email or password is wrong.", fillAll:"Fill in every field.",
+ checkEmail:"We sent a confirmation link to your email. Click it, then log in.",
+ loading:"Loading…", netErr:"Could not reach the server. Check the internet and try again.",
+ logout:"Log out", kiosk:"Kiosk", books:"Books", members:"Members", reports:"Reports", settings:"Settings",
+ lockKiosk:"Start kiosk mode", exitKiosk:"Exit kiosk mode", exitHint:"Enter the kiosk PIN or password", unlock:"Unlock", wrongPass:"Wrong password.",
+ camStart:"Scan with camera", camStop:"Stop camera", photoScan:"Take a photo to scan", camHint:"Hold the barcode in front of the camera",
+ camFail:"Could not start the camera. Allow camera access in the browser, or use \"Take a photo to scan\".",
+ photoFail:"No barcode found in the photo. Move closer, use good light and try again.",
+ scanTitle:"Scan the book's barcode", scanHint:"Point the scanner at the barcode on the back of the book. You can also type the code and press Enter.", scanBtn:"Find",
+ notFound:"No book found for this code.", by:"Author", avail:"Available", ofcopies:"Total copies",
+ borrow:"Borrow", buy:"Buy", ret:"Return", back:"Back", cancel:"Cancel",
+ outOfStock:"All copies are on loan right now.", noStock:"No copies left.",
+ yourPhone:"Your phone number", yourName:"Your name", returnDate:"Return date", confirmBorrow:"Confirm borrow",
+ confirmBuy:"Confirm purchase", payMethod:"How you pay", cash:"Cash", transfer:"Bank transfer", optional:"(optional)",
+ limitHit:"This member has reached the borrowing limit.", needNamePhone:"Enter your name and phone number.", datePast:"Return date must be after today.",
+ loanReceipt:"Loan receipt", invoice:"Invoice", receiptNo:"Number", date:"Date", book:"Book", member:"Member", dueOn:"Return by", amount:"Amount", method:"Method",
+ thanks:"Thank you. Please return the book by the date above.", thanksBuy:"Thank you for your purchase.",
+ done:"Done", copyText:"Copy text", copied:"Copied",
+ whoReturns:"Who is returning it?", noLoan:"This book has no open loans.", returnedMsg:"Book returned.", due:"Due", markReturned:"Mark returned",
+ isbn:"ISBN (number under the barcode on the back)", labelsNote:"Books with an ISBN are scanned from the barcode already printed on the back, so they need no sticker. Below are labels for books without one.", allHaveIsbn:"Every book has an ISBN, so no labels are needed.", setPin:"Kiosk PIN (4 digits, leave empty to use the password)", pinBad:"The PIN must be exactly 4 digits.", isbnAdded:"A book with this ISBN already existed, so copies were added.", isbnBad:"An ISBN has 10 or 13 digits.",
+ addBook:"Add a book", title:"Title", author:"Author", category:"Category", copies:"Copies", price:"Price", add:"Add", code:"Code", remove:"Remove",
+ confirmRemove:"Yes, remove", removeBlocked:"This has loan history, so it cannot be removed.", onLoanNoRemove:"A book on loan cannot be removed.",
+ labelsTitle:"Barcode labels", addMember:"Add a member", name:"Name", phone:"Phone", openLoans:"Open loans", phoneUsed:"A member with this phone number already exists.",
+ tBooks:"Titles", tCopies:"Total copies", tOnLoan:"On loan", tOverdue:"Overdue", tSales:"Total sales",
+ overdueList:"Overdue list", daysLate:"Days late", noOverdue:"Nothing is overdue.", currentLoans:"All open loans", salesList:"Sales", noSales:"No sales yet.", noLoans:"No open loans.",
+ setLoanDays:"Loan period (days)", setMaxLoans:"Most books one member can borrow", setCurrency:"Currency symbol", save:"Save", saved:"Saved.",
+ emptyBooks:"No books yet. Add the first one with the form below.", refresh:"Refresh"
+}};
+
+/* ---------- state ---------- */
+let lang = "bn";
+try{ lang = localStorage.getItem("library-kiosk-lang") || "bn" }catch(e){}
+const D = {user:null, lib:null, books:[], members:[], loans:[], sales:[]};
+const ui = {tab:"kiosk",locked:false,unlocking:false,k:{step:"scan"},msg:"",err:"",loading:true,busy:false,confirmDel:null};
+
+function pad(n,w){return String(n).padStart(w,"0")}
+function isoToday(){const d=new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1,2)+"-"+pad(d.getDate(),2)}
+function addDays(iso,n){const [y,m,d]=iso.split("-").map(Number);const dt=new Date(y,m-1,d+n);return dt.getFullYear()+"-"+pad(dt.getMonth()+1,2)+"-"+pad(dt.getDate(),2)}
+function daysBetween(a,b){const pa=a.split("-").map(Number),pb=b.split("-").map(Number);return Math.round((new Date(pb[0],pb[1]-1,pb[2])-new Date(pa[0],pa[1]-1,pa[2]))/86400000)}
+const t=k=>(L[lang]&&L[lang][k])||L.en[k]||k;
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const money=v=>(D.lib?D.lib.currency:"৳")+Number(v).toFixed(2);
+const bookById=id=>D.books.find(b=>b.id===id);
+const memberById=id=>D.members.find(m=>m.id===id);
+const onLoanCount=bookId=>D.loans.filter(l=>l.book_id===bookId).length;
+const availOf=b=>b.copies-onLoanCount(b.id);
+const normPhone=p=>String(p||"").replace(/[^\d+]/g,"");
+
+/* map database error codes to friendly text */
+function errText(e){
+  const m=String((e&&(e.message||e.error_description))||e||"");
+  const map={out_of_stock:"outOfStock",no_stock:"noStock",limit_hit:"limitHit",name_phone_required:"needNamePhone",due_in_past:"datePast",book_not_found:"notFound"};
+  for(const k in map)if(m.includes(k))return t(map[k]);
+  if(/foreign key|violates.*constraint.*loans/i.test(m))return t("removeBlocked");
+  if(/members_library_id_phone/i.test(m))return t("phoneUsed");
+  if(/Invalid login/i.test(m))return t("badLogin");
+  if(/Failed to fetch|NetworkError/i.test(m))return t("netErr");
+  return m||t("netErr");
+}
+
+/* ---------- data loading ---------- */
+async function loadAll(){
+  const [b,m,l,s]=await Promise.all([
+    sb.from("books").select("*").order("id"),
+    sb.from("members").select("*").order("id"),
+    sb.from("loans").select("*").is("returned_date",null).order("due_date"),
+    sb.from("sales").select("*").order("id",{ascending:false}).limit(200)
+  ]);
+  const bad=[b,m,l,s].find(x=>x.error);if(bad)throw bad.error;
+  D.books=b.data.map(x=>({...x,price:Number(x.price)}));D.members=m.data;D.loans=l.data;D.sales=s.data.map(x=>({...x,price:Number(x.price)}));
+}
+async function loadLibrary(){
+  let {data,error}=await sb.from("libraries").select("*").maybeSingle();
+  if(error)throw error;
+  if(!data){
+    const name=(D.user.user_metadata&&D.user.user_metadata.library_name)||D.user.email;
+    const r=await sb.from("libraries").insert({owner_id:D.user.id,name}).select().single();
+    if(r.error)throw r.error;data=r.data;
+  }
+  D.lib=data;
+}
+async function boot(session){
+  D.user=session?session.user:null;
+  if(!D.user){D.lib=null;ui.loading=false;render();return}
+  ui.loading=true;render();
+  try{await loadLibrary();await loadAll();ui.err=""}catch(e){ui.err=errText(e)}
+  ui.loading=false;render();
+}
+/* run an async action with a busy state, then reload and render */
+async function act(fn){
+  if(ui.busy)return;ui.busy=true;ui.err="";ui.msg="";render();
+  try{await fn();}catch(e){ui.err=errText(e)}
+  try{if(D.lib)await loadAll()}catch(e){ui.err=ui.err||errText(e)}
+  ui.busy=false;render();
+}
+
+/* ---------- actions ---------- */
+function findBook(raw){
+  const q=String(raw||"").trim().toUpperCase();if(!q)return null;
+  const digits=q.replace(/[\s-]/g,"");
+  let b=D.books.find(x=>x.code.toUpperCase()===q);
+  if(!b&&/^\d{10,13}$/.test(digits))b=D.books.find(x=>x.isbn&&x.isbn===digits);
+  if(!b&&/^\d{1,6}$/.test(q))b=D.books.find(x=>x.id===Number(q));
+  return b||null;
+}
+async function rpc(name,args){const {data,error}=await sb.rpc(name,args);if(error)throw error;return data}
+function receiptText(r){
+  const out=[(r.kind==="loan"?t("loanReceipt"):t("invoice"))+" "+r.no,t("date")+": "+r.date,t("book")+": "+r.book,t("member")+": "+r.who];
+  if(r.kind==="loan")out.push(t("dueOn")+": "+r.due);
+  else{out.push(t("amount")+": "+money(r.amount));out.push(t("method")+": "+(r.method==="cash"?t("cash"):t("transfer")))}
+  return out.join("\n");
+}
+
+/* ---------- camera scanning ---------- */
+let camStream=null,camTimer=null,zxReader=null;
+function stopCam(){
+  if(camTimer){clearInterval(camTimer);camTimer=null}
+  if(zxReader){try{zxReader.reset()}catch(e){}zxReader=null}
+  if(camStream){camStream.getTracks().forEach(tr=>tr.stop());camStream=null}
+}
+function onScanned(raw){
+  if(!ui.cam&&!ui.photoBusy)return;
+  stopCam();ui.cam=false;ui.photoBusy=false;ui.err="";ui.msg="";
+  const b=findBook(raw);
+  if(b)ui.k={step:"book",bookId:b.id};else ui.err=t("notFound")+" ("+String(raw).slice(0,20)+")";
+  render();
+}
+async function startCam(){
+  ui.cam=true;ui.err="";ui.msg="";render();
+  const v=document.getElementById("cam");
+  try{
+    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia||!v)throw new Error("nocam");
+    camStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false});
+    v.srcObject=camStream;await v.play();
+    if(window.BarcodeDetector){
+      const det=new BarcodeDetector({formats:["code_128","code_39","ean_13","qr_code"]});
+      camTimer=setInterval(async()=>{try{const r=await det.detect(v);if(r&&r.length)onScanned(r[0].rawValue)}catch(e){}},250);
+    }else if(window.ZXing){
+      zxReader=new ZXing.BrowserMultiFormatReader();
+      zxReader.decodeFromStream(camStream,v,(res)=>{if(res)onScanned(res.getText())});
+    }else throw new Error("nolib");
+  }catch(e){stopCam();ui.cam=false;ui.err=t("camFail");render()}
+}
+async function decodePhoto(file){
+  const url=URL.createObjectURL(file);let text=null;
+  try{
+    if(window.BarcodeDetector){try{const img=new Image();img.src=url;await img.decode();const r=await new BarcodeDetector().detect(img);if(r&&r.length)text=r[0].rawValue}catch(e){}}
+    if(!text&&window.ZXing){try{const rd=new ZXing.BrowserMultiFormatReader();const res=await rd.decodeFromImageUrl(url);text=res.getText();rd.reset()}catch(e){}}
+  }finally{URL.revokeObjectURL(url)}
+  return text;
+}
+document.addEventListener("change",async e=>{
+  if(!e.target||e.target.id!=="photo"||!e.target.files||!e.target.files[0])return;
+  ui.photoBusy=true;
+  const text=await decodePhoto(e.target.files[0]);
+  if(text)onScanned(text);else{ui.photoBusy=false;ui.err=t("photoFail");render()}
+});
+
+/* ---------- views ---------- */
+const $app=document.getElementById("app");
+function render(){
+  if(!ui.cam)stopCam();
+  document.documentElement.lang=lang;
+  if(ui.loading){$app.innerHTML=`<div class="auth"><div class="card"><p class="muted">${t("loading")}</p></div></div>`;return}
+  if(!D.user||!D.lib){renderAuth();return}
+  const tabs=[["kiosk",t("kiosk")],["books",t("books")],["members",t("members")],["reports",t("reports")],["settings",t("settings")]];
+  let head;
+  if(ui.locked){
+    head=`<div class="top"><div class="brand">${esc(D.lib.name)}</div><div class="right">
+      <button class="btn lang" data-act="lang">${lang==="bn"?"English":"বাংলা"}</button>
+      <button class="btn" data-act="unlockform">${t("exitKiosk")}</button></div></div>`;
+    if(ui.unlocking){
+      head+=`<form class="card" data-form="unlock" style="max-width:420px;margin:0 auto 16px"><div class="field"><label for="upass">${t("exitHint")}</label><input id="upass" type="password" autocomplete="off"></div>${ui.err?`<div class="err">${esc(ui.err)}</div>`:""}<div class="actions"><button class="btn primary" type="submit">${t("unlock")}</button><button class="btn" type="button" data-act="unlockcancel">${t("cancel")}</button></div></form>`;
+    }
+  }else{
+    head=`<div class="top"><div class="brand">${esc(D.lib.name)}<small>${esc(t("appname"))}</small></div>
+      <nav class="tabs" aria-label="Main">${tabs.map(x=>`<button class="tab" data-act="tab" data-v="${x[0]}" aria-current="${ui.tab===x[0]}">${x[1]}</button>`).join("")}</nav>
+      <div class="right"><button class="btn" data-act="refresh">${t("refresh")}</button><button class="btn" data-act="lock">${t("lockKiosk")}</button>
+      <button class="btn lang" data-act="lang">${lang==="bn"?"English":"বাংলা"}</button>
+      <button class="btn" data-act="logout">${t("logout")}</button></div></div>`;
+  }
+  const tab=ui.locked?"kiosk":ui.tab;
+  const body={kiosk:kioskView,books:booksView,members:membersView,reports:reportsView,settings:settingsView}[tab]();
+  $app.innerHTML=head+`<div class="${ui.busy?"busy":""}">${body}</div>`;
+  afterRender(tab);
+}
+function afterRender(tab){
+  if(tab==="kiosk"&&ui.k.step==="scan"){const i=document.getElementById("scan");if(i)i.focus()}
+  if(tab==="kiosk"&&ui.k.step==="borrow"){const i=document.getElementById("kphone");if(i)i.focus()}
+  if(ui.unlocking){const i=document.getElementById("upass");if(i)i.focus()}
+  if(tab==="books"&&window.JsBarcode){
+    document.querySelectorAll("svg[data-code]").forEach(s=>{
+      try{JsBarcode(s,s.getAttribute("data-code"),{format:"CODE128",height:42,width:2,fontSize:13,margin:2,background:"#ffffff",lineColor:"#000000"})}catch(e){}
+    });
+  }
+}
+function renderAuth(){
+  const reg=ui.authTab==="register";
+  $app.innerHTML=`<div class="auth"><div class="right" style="justify-content:flex-end;margin-bottom:8px"><button class="btn lang" data-act="lang">${lang==="bn"?"English":"বাংলা"}</button></div>
+  <div class="card ${ui.busy?"busy":""}"><h1 style="font-size:1.6rem">${t("appname")}</h1>
+  <div class="note">${t("cloud")}</div>
+  <div class="tabs" style="margin-bottom:14px"><button class="tab" data-act="authtab" data-v="login" aria-current="${!reg}">${t("login")}</button><button class="tab" data-act="authtab" data-v="register" aria-current="${reg}">${t("register")}</button></div>
+  <form data-form="${reg?"register":"login"}">
+   ${reg?`<div class="field"><label for="aname">${t("libname")}</label><input id="aname" autocomplete="organization"></div>`:""}
+   <div class="field"><label for="aemail">${t("email")}</label><input id="aemail" type="email" autocomplete="email" autocapitalize="none" spellcheck="false" value="${esc(ui.authEmail||"")}"></div>
+   <div class="field"><label for="apass">${t("password")}</label><input id="apass" type="password" autocomplete="${reg?"new-password":"current-password"}"></div>
+   ${ui.err?`<div class="err" role="alert">${esc(ui.err)}</div>`:""}
+   ${ui.msg?`<div class="ok" role="status">${esc(ui.msg)}</div>`:""}
+   <button class="btn primary" type="submit" style="width:100%">${reg?t("createLib"):t("login")}</button>
+  </form></div></div>`;
+}
+
+function kioskView(){
+  const k=ui.k;
+  if(k.step==="scan"){
+    return `<div class="kiosk"><h1>${t("scanTitle")}</h1>
+    <form class="card scanbox" data-form="scan">
+      <label for="scan" class="muted" style="text-align:center">${t("scanHint")}</label>
+      <input id="scan" autocomplete="off" inputmode="text" autocapitalize="characters" spellcheck="false" aria-label="${t("code")}">
+      ${ui.err?`<div class="err" style="text-align:center">${esc(ui.err)}</div>`:""}
+      ${ui.msg?`<div class="ok" style="text-align:center;margin-top:8px">${esc(ui.msg)}</div>`:""}
+      <div class="actions" style="justify-content:center"><button class="btn primary" type="submit">${t("scanBtn")}</button></div>
+    </form>
+    <div class="card" style="margin-top:16px">
+      ${ui.cam?`<div class="camwrap"><video id="cam" playsinline muted></video><div class="frame"></div><div class="tip">${t("camHint")}</div></div>
+        <button class="btn big" style="width:100%" data-act="camstop">${t("camStop")}</button>`
+      :`<div class="scanmodes">
+        <button class="btn primary big" data-act="camstart">${t("camStart")}</button>
+        <label class="btn big" style="display:flex;align-items:center;justify-content:center;cursor:pointer;margin:0;color:var(--ink)" for="photo">${t("photoScan")}</label>
+        <input id="photo" type="file" accept="image/*" capture="environment" style="position:absolute;left:-9999px;width:1px;height:1px" tabindex="-1">
+      </div>`}
+    </div></div>`;
+  }
+  const b=bookById(k.bookId);
+  if(!b&&k.step!=="receipt"){ui.k={step:"scan"};return kioskView()}
+  const bookCard=b?`<div class="bookhead"><div><h2 style="margin:0">${esc(b.title)}</h2><div class="muted">${t("by")}: ${esc(b.author)}${b.category?" · "+esc(b.category):""}</div></div><div class="price">${money(b.price)}</div></div>`:"";
+  if(k.step==="book"){
+    const av=availOf(b),loansOpen=onLoanCount(b.id);
+    return `<div class="kiosk"><div class="card">${bookCard}
+      <p>${t("avail")}: <b>${av}</b> / ${t("ofcopies")}: <b>${b.copies}</b></p>
+      ${av<1?`<div class="err">${t("outOfStock")}</div>`:""}
+      ${ui.err?`<div class="err">${esc(ui.err)}</div>`:""}
+      <div class="row" style="margin-top:8px">
+       <button class="btn primary big" data-act="kstep" data-v="borrow" ${av<1?"disabled":""}>${t("borrow")}</button>
+       <button class="btn primary big" data-act="kstep" data-v="buy" ${av<1?"disabled":""}>${t("buy")} · ${money(b.price)}</button>
+       ${loansOpen?`<button class="btn big" data-act="kstep" data-v="return">${t("ret")}</button>`:""}
+      </div>
+      <div class="actions"><button class="btn" data-act="kreset">${t("back")}</button></div></div></div>`;
+  }
+  if(k.step==="borrow"){
+    return `<div class="kiosk"><form class="card" data-form="borrow">${bookCard}
+      <div class="field"><label for="kphone">${t("yourPhone")}</label><input id="kphone" type="tel" inputmode="tel" autocomplete="off" value="${esc(k.phone||"")}"></div>
+      <div class="field"><label for="kname">${t("yourName")}</label><input id="kname" autocomplete="off" value="${esc(k.name||"")}"></div>
+      <div class="field"><label for="kdue">${t("returnDate")}</label><input id="kdue" type="date" min="${addDays(isoToday(),1)}" value="${esc(k.due||addDays(isoToday(),D.lib.loan_days))}"></div>
+      ${ui.err?`<div class="err">${esc(ui.err)}</div>`:""}
+      <div class="actions"><button class="btn primary big" type="submit">${t("confirmBorrow")}</button><button class="btn" type="button" data-act="kstep" data-v="book">${t("cancel")}</button></div></form></div>`;
+  }
+  if(k.step==="buy"){
+    return `<div class="kiosk"><form class="card" data-form="buy">${bookCard}
+      <div class="row"><div class="field"><label for="bname">${t("yourName")} ${t("optional")}</label><input id="bname" autocomplete="off"></div>
+      <div class="field"><label for="bphone">${t("yourPhone")} ${t("optional")}</label><input id="bphone" type="tel" autocomplete="off"></div></div>
+      <div class="field"><label for="bmethod">${t("payMethod")}</label><select id="bmethod"><option value="cash">${t("cash")}</option><option value="transfer">${t("transfer")}</option></select></div>
+      ${ui.err?`<div class="err">${esc(ui.err)}</div>`:""}
+      <div class="actions"><button class="btn primary big" type="submit">${t("confirmBuy")} · ${money(b.price)}</button><button class="btn" type="button" data-act="kstep" data-v="book">${t("cancel")}</button></div></form></div>`;
+  }
+  if(k.step==="return"){
+    const ls=D.loans.filter(x=>x.book_id===b.id);
+    return `<div class="kiosk"><div class="card">${bookCard}<h3>${t("whoReturns")}</h3>
+      ${ls.length?ls.map(x=>{const m=memberById(x.member_id);return `<div class="row" style="align-items:center;margin-bottom:8px"><div><b>${esc(m?m.name:"?")}</b><div class="muted">${t("due")}: ${esc(x.due_date)}</div></div><button class="btn primary" data-act="kreturn" data-id="${x.id}">${t("ret")}</button></div>`}).join(""):`<p class="muted">${t("noLoan")}</p>`}
+      ${ui.err?`<div class="err">${esc(ui.err)}</div>`:""}
+      <div class="actions"><button class="btn" data-act="kstep" data-v="book">${t("back")}</button></div></div></div>`;
+  }
+  if(k.step==="receipt"){
+    const r=k.receipt;
+    const rows=r.kind==="loan"
+      ?`<dt>${t("book")}</dt><dd>${esc(r.book)}</dd><dt>${t("member")}</dt><dd>${esc(r.who)}</dd><dt>${t("dueOn")}</dt><dd>${esc(r.due)}</dd>`
+      :`<dt>${t("book")}</dt><dd>${esc(r.book)}</dd><dt>${t("member")}</dt><dd>${esc(r.who)}</dd><dt>${t("amount")}</dt><dd>${money(r.amount)}</dd><dt>${t("method")}</dt><dd>${r.method==="cash"?t("cash"):t("transfer")}</dd>`;
+    return `<div class="kiosk"><div class="receipt"><h2>${r.kind==="loan"?t("loanReceipt"):t("invoice")}</h2>
+      <div class="muted">${t("receiptNo")}: ${esc(r.no)} · ${t("date")}: ${esc(r.date)}</div><dl>${rows}</dl>
+      <p>${r.kind==="loan"?t("thanks"):t("thanksBuy")}</p>
+      <div class="actions"><button class="btn primary big" data-act="kreset">${t("done")}</button><button class="btn" data-act="kcopy">${t("copyText")}</button></div>
+      <div class="ok" id="copied" aria-live="polite"></div></div></div>`;
+  }
+  return "";
+}
+
+function delCell(kind,id){
+  return ui.confirmDel===kind+id
+    ?`<button class="btn danger" style="min-height:32px" data-act="del${kind}" data-id="${id}">${t("confirmRemove")}</button> <button class="btn" style="min-height:32px" data-act="delcancel">${t("cancel")}</button>`
+    :`<button class="btn danger" style="min-height:32px" data-act="askdel" data-v="${kind}" data-id="${id}">${t("remove")}</button>`;
+}
+function booksView(){
+  const rows=D.books.map(b=>`<tr><td><b>${esc(b.code)}</b></td><td>${esc(b.title)}<div class="muted" style="font-size:.85rem">${esc(b.author)}${b.category?" · "+esc(b.category):""}${b.isbn?" · ISBN "+esc(b.isbn):""}</div></td>
+    <td class="num">${b.copies} <button class="btn" style="min-height:30px;padding:0 8px" data-act="copies" data-id="${b.id}" data-d="-1" aria-label="-1">−</button><button class="btn" style="min-height:30px;padding:0 8px" data-act="copies" data-id="${b.id}" data-d="1" aria-label="+1">+</button></td>
+    <td class="num">${availOf(b)}</td><td class="num">${money(b.price)}</td>
+    <td>${delCell("book",b.id)}</td></tr>`).join("");
+  return `<form class="card" data-form="addbook" style="margin-bottom:16px"><h3>${t("addBook")}</h3>
+    <div class="row"><div class="field"><label for="nt">${t("title")}</label><input id="nt" autocomplete="off"></div>
+    <div class="field"><label for="na">${t("author")}</label><input id="na" autocomplete="off"></div></div>
+    <div class="field"><label for="ni">${t("isbn")} ${t("optional")}</label><input id="ni" inputmode="numeric" autocomplete="off" placeholder="978…"></div>
+    <div class="row"><div class="field"><label for="nc">${t("category")}</label><input id="nc" autocomplete="off"></div>
+    <div class="field"><label for="nn">${t("copies")}</label><input id="nn" type="number" min="1" value="1"></div>
+    <div class="field"><label for="np">${t("price")} (${esc(D.lib.currency)})</label><input id="np" type="number" min="0" step="0.5" value="0"></div></div>
+    ${ui.err?`<div class="err">${esc(ui.err)}</div>`:""}
+    ${ui.msg?`<div class="ok">${esc(ui.msg)}</div>`:""}
+    <button class="btn primary" type="submit">${t("add")}</button></form>
+  ${D.books.length?`<div class="tablewrap" style="margin-bottom:20px"><table><thead><tr><th>${t("code")}</th><th>${t("title")}</th><th class="num">${t("copies")}</th><th class="num">${t("avail")}</th><th class="num">${t("price")}</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`:`<p class="muted">${t("emptyBooks")}</p>`}
+  <h2>${t("labelsTitle")}</h2><p class="muted">${t("labelsNote")}</p>
+  ${D.books.length&&D.books.every(b=>b.isbn)?`<p class="ok">${t("allHaveIsbn")}</p>`:""}
+  <div class="labels">${D.books.filter(b=>!b.isbn).map(b=>`<div class="label"><svg data-code="${esc(b.code)}" role="img" aria-label="${esc(b.code)}"></svg><div>${esc(b.title)}</div></div>`).join("")}</div>`;
+}
+function membersView(){
+  const rows=D.members.map(m=>`<tr><td>${esc(m.name)}</td><td>${esc(m.phone)}</td><td class="num">${D.loans.filter(x=>x.member_id===m.id).length}</td><td>${delCell("member",m.id)}</td></tr>`).join("");
+  return `<form class="card" data-form="addmember" style="margin-bottom:16px"><h3>${t("addMember")}</h3>
+   <div class="row"><div class="field"><label for="mn">${t("name")}</label><input id="mn" autocomplete="off"></div>
+   <div class="field"><label for="mp">${t("phone")}</label><input id="mp" type="tel" autocomplete="off"></div></div>
+   ${ui.err?`<div class="err">${esc(ui.err)}</div>`:""}
+   <button class="btn primary" type="submit">${t("add")}</button></form>
+  <div class="tablewrap"><table><thead><tr><th>${t("name")}</th><th>${t("phone")}</th><th class="num">${t("openLoans")}</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+function reportsView(){
+  const today=isoToday(),ol=D.loans,overdue=ol.filter(x=>x.due_date<today);
+  const totalSales=D.sales.reduce((s,x)=>s+Number(x.price),0);
+  const loanRow=x=>{const b=bookById(x.book_id),m=memberById(x.member_id);const late=daysBetween(x.due_date,today);
+    return `<tr><td>${esc(m?m.name:"?")}<div class="muted" style="font-size:.85rem">${esc(m?m.phone:"")}</div></td><td>${esc(b?b.title:"?")}</td><td>${esc(x.due_date)}</td>
+    <td class="num">${late>0?`<span class="pill bad">${late}</span>`:`<span class="pill">0</span>`}</td>
+    <td><button class="btn" style="min-height:32px" data-act="markret" data-id="${x.id}">${t("markReturned")}</button></td></tr>`};
+  const head=`<thead><tr><th>${t("member")}</th><th>${t("book")}</th><th>${t("due")}</th><th class="num">${t("daysLate")}</th><th></th></tr></thead>`;
+  return `${ui.err?`<div class="err">${esc(ui.err)}</div>`:""}<div class="tiles">
+   <div class="tile"><b>${D.books.length}</b><span>${t("tBooks")}</span></div>
+   <div class="tile"><b>${D.books.reduce((s,b)=>s+b.copies,0)}</b><span>${t("tCopies")}</span></div>
+   <div class="tile"><b>${ol.length}</b><span>${t("tOnLoan")}</span></div>
+   <div class="tile ${overdue.length?"alert":""}"><b>${overdue.length}</b><span>${t("tOverdue")}</span></div>
+   <div class="tile"><b>${money(totalSales)}</b><span>${t("tSales")}</span></div></div>
+  <h2>${t("overdueList")}</h2>
+  ${overdue.length?`<div class="tablewrap" style="margin-bottom:20px"><table>${head}<tbody>${overdue.map(loanRow).join("")}</tbody></table></div>`:`<p class="muted">${t("noOverdue")}</p>`}
+  <h2>${t("currentLoans")}</h2>
+  ${ol.length?`<div class="tablewrap" style="margin-bottom:20px"><table>${head}<tbody>${ol.map(loanRow).join("")}</tbody></table></div>`:`<p class="muted">${t("noLoans")}</p>`}
+  <h2>${t("salesList")}</h2>
+  ${D.sales.length?`<div class="tablewrap"><table><thead><tr><th>${t("receiptNo")}</th><th>${t("date")}</th><th>${t("book")}</th><th>${t("member")}</th><th class="num">${t("amount")}</th></tr></thead><tbody>${D.sales.map(s=>`<tr><td>${esc(s.invoice_no)}</td><td>${esc(s.sold_on)}</td><td>${esc(s.book_title)}</td><td>${esc(s.buyer||"-")}</td><td class="num">${money(s.price)}</td></tr>`).join("")}</tbody></table></div>`:`<p class="muted">${t("noSales")}</p>`}`;
+}
+function settingsView(){
+  const l=D.lib;
+  return `<form class="card" data-form="settings" style="max-width:520px"><h3>${t("settings")}</h3>
+   <div class="field"><label for="sn">${t("libname")}</label><input id="sn" value="${esc(l.name)}"></div>
+   <div class="field"><label for="sl">${t("setLoanDays")}</label><input id="sl" type="number" min="1" value="${l.loan_days}"></div>
+   <div class="field"><label for="sm">${t("setMaxLoans")}</label><input id="sm" type="number" min="1" value="${l.max_loans}"></div>
+   <div class="field"><label for="sc">${t("setCurrency")}</label><input id="sc" maxlength="4" value="${esc(l.currency)}"></div>
+   <div class="field"><label for="sp">${t("setPin")}</label><input id="sp" inputmode="numeric" maxlength="4" autocomplete="off" value="${esc(l.kiosk_pin||"")}"></div>
+   ${ui.err?`<div class="err">${esc(ui.err)}</div>`:""}
+   ${ui.msg?`<div class="ok">${esc(ui.msg)}</div>`:""}
+   <button class="btn primary" type="submit">${t("save")}</button></form>`;
+}
+
+/* ---------- events ---------- */
+function go(fn){ui.err="";ui.msg="";fn();render()}
+document.addEventListener("click",e=>{
+  const el=e.target.closest("[data-act]");
+  if(!el){
+    const tab=ui.locked?"kiosk":ui.tab;
+    if(D.lib&&tab==="kiosk"&&ui.k.step==="scan"&&!e.target.closest("input,button,select,a,label")){const i=document.getElementById("scan");if(i)i.focus()}
+    return;
+  }
+  const a=el.dataset.act,v=el.dataset.v,id=Number(el.dataset.id);
+  if(a==="camstart"){startCam();return}
+  if(a==="camstop"){ui.cam=false;stopCam();render();return}
+  if(a==="lang")go(()=>{lang=lang==="bn"?"en":"bn";try{localStorage.setItem("library-kiosk-lang",lang)}catch(e){}});
+  else if(a==="authtab")go(()=>{ui.authTab=v});
+  else if(a==="logout"){ui.tab="kiosk";ui.k={step:"scan"};sb.auth.signOut()}
+  else if(a==="refresh")act(async()=>{});
+  else if(a==="tab"){ui.tab=v;ui.k={step:"scan"};ui.confirmDel=null;act(async()=>{})}
+  else if(a==="lock")go(()=>{ui.locked=true;ui.tab="kiosk";ui.k={step:"scan"}});
+  else if(a==="unlockform")go(()=>{ui.unlocking=true});
+  else if(a==="unlockcancel")go(()=>{ui.unlocking=false});
+  else if(a==="kstep")go(()=>{ui.k.step=v});
+  else if(a==="kreset")go(()=>{ui.k={step:"scan"}});
+  else if(a==="kreturn")act(async()=>{const ok=await rpc("return_loan",{p_loan_id:id});ui.k={step:"scan"};if(ok)ui.msg=t("returnedMsg")});
+  else if(a==="kcopy"){
+    const txt=receiptText(ui.k.receipt);
+    try{navigator.clipboard.writeText(txt).then(()=>{const c=document.getElementById("copied");if(c)c.textContent=t("copied")},()=>{})}catch(err){}
+  }
+  else if(a==="copies")act(async()=>{const b=bookById(id);if(!b)return;const n=b.copies+Number(el.dataset.d);
+    if(n>=onLoanCount(b.id)&&n>=0){const {error}=await sb.from("books").update({copies:n}).eq("id",id);if(error)throw error}});
+  else if(a==="askdel")go(()=>{ui.confirmDel=v+id});
+  else if(a==="delcancel")go(()=>{ui.confirmDel=null});
+  else if(a==="delbook")act(async()=>{ui.confirmDel=null;if(onLoanCount(id)>0)throw new Error(t("onLoanNoRemove"));
+    const {error}=await sb.from("books").delete().eq("id",id);if(error)throw error});
+  else if(a==="delmember")act(async()=>{ui.confirmDel=null;const {error}=await sb.from("members").delete().eq("id",id);if(error)throw error});
+  else if(a==="markret")act(async()=>{await rpc("return_loan",{p_loan_id:id})});
+});
+
+document.addEventListener("submit",e=>{
+  const f=e.target.closest("form[data-form]");if(!f)return;
+  e.preventDefault();
+  const kind=f.dataset.form,val=id=>{const x=document.getElementById(id);return x?x.value:""};
+  ui.err="";ui.msg="";
+  if(kind==="login"){
+    const email=val("aemail").trim(),pass=val("apass");ui.authEmail=email;
+    if(!email||!pass){ui.err=t("fillAll");render();return}
+    act(async()=>{const {error}=await sb.auth.signInWithPassword({email,password:pass});if(error)throw error});
+  }else if(kind==="register"){
+    const name=val("aname").trim(),email=val("aemail").trim(),pass=val("apass");ui.authEmail=email;
+    if(!name||!email||!pass){ui.err=t("fillAll");render();return}
+    act(async()=>{
+      const {data,error}=await sb.auth.signUp({email,password:pass,options:{data:{library_name:name},emailRedirectTo:location.href.split("#")[0]}});
+      if(error)throw error;
+      if(!data.session){ui.msg=t("checkEmail");ui.authTab="login"}
+    });
+  }else if(kind==="unlock"){
+    const entered=val("upass").trim(),pin=D.lib.kiosk_pin;
+    if(entered&&pin&&entered===pin){ui.locked=false;ui.unlocking=false;render();return}
+    if(!entered){ui.err=t("wrongPass");render();return}
+    act(async()=>{const {error}=await sb.auth.signInWithPassword({email:D.user.email,password:entered});
+      if(error)throw new Error(t("wrongPass"));ui.locked=false;ui.unlocking=false});
+  }else if(kind==="scan"){
+    const b=findBook(val("scan"));
+    if(b)ui.k={step:"book",bookId:b.id};else ui.err=t("notFound");
+    render();
+  }else if(kind==="borrow"){
+    const b=bookById(ui.k.bookId);
+    ui.k.phone=val("kphone");ui.k.name=val("kname");ui.k.due=val("kdue");
+    const known=D.members.find(m=>normPhone(m.phone)===normPhone(ui.k.phone));
+    if(known&&!ui.k.name.trim())ui.k.name=known.name;
+    act(async()=>{
+      const loan=await rpc("borrow_book",{p_book_id:b.id,p_name:ui.k.name,p_phone:normPhone(ui.k.phone),p_due:ui.k.due});
+      const who=(known?known.name:ui.k.name.trim())+" ("+normPhone(ui.k.phone)+")";
+      ui.k={step:"receipt",receipt:{kind:"loan",no:"LN-"+pad(loan.id,4),date:loan.out_date,book:b.title,who,due:loan.due_date}};
+    });
+  }else if(kind==="buy"){
+    const b=bookById(ui.k.bookId),buyer=val("bname"),phone=normPhone(val("bphone")),method=val("bmethod");
+    act(async()=>{
+      const s=await rpc("buy_book",{p_book_id:b.id,p_buyer:buyer,p_phone:phone,p_method:method});
+      ui.k={step:"receipt",receipt:{kind:"sale",no:s.invoice_no,date:s.sold_on,book:s.book_title,who:s.buyer||"-",amount:Number(s.price),method:s.method}};
+    });
+  }else if(kind==="addbook"){
+    const title=val("nt").trim(),isbn=val("ni").replace(/[\s-]/g,"");
+    const copies=Math.max(1,parseInt(val("nn"),10)||1);
+    if(!title){ui.err=t("fillAll");render();return}
+    if(isbn&&!/^\d{10}$|^\d{13}$/.test(isbn)){ui.err=t("isbnBad");render();return}
+    const dup=isbn?D.books.find(x=>x.isbn===isbn):null;
+    act(async()=>{
+      if(dup){const {error}=await sb.from("books").update({copies:dup.copies+copies}).eq("id",dup.id);if(error)throw error;ui.msg=t("isbnAdded");return}
+      const {error}=await sb.from("books").insert({library_id:D.lib.id,code:"",isbn:isbn||null,title,author:val("na").trim(),category:val("nc").trim(),copies,price:Math.max(0,parseFloat(val("np"))||0)});
+      if(error)throw error;
+    });
+  }else if(kind==="addmember"){
+    const n=val("mn").trim(),p=normPhone(val("mp"));
+    if(!n||!p){ui.err=t("needNamePhone");render();return}
+    act(async()=>{const {error}=await sb.from("members").insert({library_id:D.lib.id,name:n,phone:p});if(error)throw error});
+  }else if(kind==="settings"){
+    const pin=val("sp").trim();
+    if(pin&&!/^\d{4}$/.test(pin)){ui.err=t("pinBad");render();return}
+    const patch={name:val("sn").trim()||D.lib.name,loan_days:Math.max(1,parseInt(val("sl"),10)||14),max_loans:Math.max(1,parseInt(val("sm"),10)||3),currency:val("sc")||"৳",kiosk_pin:pin||null};
+    act(async()=>{const {data,error}=await sb.from("libraries").update(patch).eq("id",D.lib.id).select().single();if(error)throw error;D.lib=data;ui.msg=t("saved")});
+  }
+});
+
+/* ---------- start ---------- */
+render();
+let lastUid=null;
+sb.auth.onAuthStateChange((event,session)=>{
+  const uid=session?session.user.id:null;
+  if(uid===lastUid&&event!=="SIGNED_OUT"){D.user=session?session.user:null;return}
+  lastUid=uid;
+  setTimeout(()=>boot(session),0);
+});
+</script>
+</body>
+</html>
