@@ -140,7 +140,7 @@ bn:{
  tBooks:"বইয়ের নাম", tCopies:"মোট কপি", tOnLoan:"ধারে আছে", tOverdue:"বকেয়া", tSales:"মোট বিক্রি",
  overdueList:"বকেয়া তালিকা", daysLate:"দেরি (দিন)", noOverdue:"কোনো বকেয়া নেই।", currentLoans:"সব চলমান ধার", salesList:"বিক্রির তালিকা", noSales:"এখনো কোনো বিক্রি নেই।", noLoans:"কোনো চলমান ধার নেই।",
  setLoanDays:"ধারের সময় (দিন)", setMaxLoans:"একজন সর্বোচ্চ কয়টি বই নিতে পারবেন", setCurrency:"মুদ্রার চিহ্ন", save:"সংরক্ষণ", saved:"সংরক্ষিত হয়েছে।",
- addThis:"এই বইটা যোগ করুন", priceBad:"দাম একটা সংখ্যা হতে হবে।", noBooksYet:"আগে \"বই\" ট্যাবে বই যোগ করুন।", emptyBooks:"এখনো কোনো বই নেই। নিচের ফর্ম দিয়ে প্রথম বইটি যোগ করুন।", refresh:"রিফ্রেশ"
+ addThis:"এই বইটা যোগ করুন", unlocked:"কিয়স্ক মোড বন্ধ হয়েছে। এখন সব ট্যাব ব্যবহার করতে পারবেন।", priceBad:"দাম একটা সংখ্যা হতে হবে।", noBooksYet:"আগে \"বই\" ট্যাবে বই যোগ করুন।", emptyBooks:"এখনো কোনো বই নেই। নিচের ফর্ম দিয়ে প্রথম বইটি যোগ করুন।", refresh:"রিফ্রেশ"
 },
 en:{
  appname:"Library Kiosk", cloud:"Data is stored online (Supabase), so you can sign in from any device.",
@@ -171,7 +171,7 @@ en:{
  tBooks:"Titles", tCopies:"Total copies", tOnLoan:"On loan", tOverdue:"Overdue", tSales:"Total sales",
  overdueList:"Overdue list", daysLate:"Days late", noOverdue:"Nothing is overdue.", currentLoans:"All open loans", salesList:"Sales", noSales:"No sales yet.", noLoans:"No open loans.",
  setLoanDays:"Loan period (days)", setMaxLoans:"Most books one member can borrow", setCurrency:"Currency symbol", save:"Save", saved:"Saved.",
- addThis:"Add this book", priceBad:"The price must be a number.", noBooksYet:"Add books in the Books tab first.", emptyBooks:"No books yet. Add the first one with the form below.", refresh:"Refresh"
+ addThis:"Add this book", unlocked:"Kiosk mode is off. All tabs are available now.", priceBad:"The price must be a number.", noBooksYet:"Add books in the Books tab first.", emptyBooks:"No books yet. Add the first one with the form below.", refresh:"Refresh"
 }};
 
 /* ---------- state ---------- */
@@ -546,7 +546,7 @@ function reportsView(){
     <td class="num">${late>0?`<span class="pill bad">${late}</span>`:`<span class="pill">0</span>`}</td>
     <td><button class="btn" style="min-height:32px" data-act="markret" data-id="${x.id}">${t("markReturned")}</button></td></tr>`};
   const head=`<thead><tr><th>${t("member")}</th><th>${t("book")}</th><th>${t("due")}</th><th class="num">${t("daysLate")}</th><th></th></tr></thead>`;
-  return `${ui.err?`<div class="err">${esc(ui.err)}</div>`:""}<div class="tiles">
+  return `${ui.err?`<div class="err">${esc(ui.err)}</div>`:""}${ui.msg?`<div class="note ok">${esc(ui.msg)}</div>`:""}<div class="tiles">
    <div class="tile"><b>${D.books.length}</b><span>${t("tBooks")}</span></div>
    <div class="tile"><b>${D.books.reduce((s,b)=>s+b.copies,0)}</b><span>${t("tCopies")}</span></div>
    <div class="tile"><b>${ol.length}</b><span>${t("tOnLoan")}</span></div>
@@ -629,10 +629,10 @@ document.addEventListener("submit",e=>{
     });
   }else if(kind==="unlock"){
     const entered=val("upass").trim(),pin=D.lib.kiosk_pin,enteredPin=asciiDigits(entered);
-    if(entered&&pin&&enteredPin===pin){ui.locked=false;ui.unlocking=false;render();return}
+    if(entered&&pin&&enteredPin===pin){ui.locked=false;ui.unlocking=false;ui.tab="reports";ui.k={step:"scan"};ui.msg=t("unlocked");render();return}
     if(!entered){ui.err=t("wrongPass");render();return}
     act(async()=>{const {error}=await sb.auth.signInWithPassword({email:D.user.email,password:entered});
-      if(error)throw new Error(t("wrongPass"));ui.locked=false;ui.unlocking=false});
+      if(error)throw new Error(t("wrongPass"));ui.locked=false;ui.unlocking=false;ui.tab="reports";ui.k={step:"scan"};ui.msg=t("unlocked")});
   }else if(kind==="scan"){
     const raw=val("scan"),b=findBook(raw);
     if(b)ui.k={step:"book",bookId:b.id};else{ui.err=t("notFound")+(D.books.length?"":" "+t("noBooksYet"));ui.unknownIsbn=looksIsbn(raw)?isbnDigits(raw):""}
