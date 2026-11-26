@@ -106,6 +106,7 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 /* ---------- Supabase ---------- */
 const SUPABASE_URL = "https://hiexfcwaepvnlantpuml.supabase.co";
 const SUPABASE_KEY = "sb_publishable_u2j3AdiWb6Cj6blblHaU0g_M7bkc2mg"; // publishable key, safe in the browser (RLS protects the data)
+if(!window.supabase){document.getElementById("app").textContent="Could not load. Check the internet and reload the page. / লোড হয়নি। ইন্টারনেট দেখে পেজটা আবার খুলুন।";throw new Error("supabase-js failed to load")}
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 /* ---------- translations ---------- */
@@ -603,13 +604,15 @@ document.addEventListener("submit",e=>{
 
 /* ---------- start ---------- */
 render();
-let lastUid=null;
+let lastUid,booted=false;
 sb.auth.onAuthStateChange((event,session)=>{
   const uid=session?session.user.id:null;
-  if(uid===lastUid&&event!=="SIGNED_OUT"){D.user=session?session.user:null;return}
-  lastUid=uid;
+  if(booted&&uid===lastUid&&event!=="SIGNED_OUT"){D.user=session?session.user:null;return}
+  booted=true;lastUid=uid;
   setTimeout(()=>boot(session),0);
 });
+/* safety net: never stay on the loading screen */
+setTimeout(()=>{if(!booted){booted=true;sb.auth.getSession().then(r=>boot(r.data.session)).catch(()=>{ui.loading=false;ui.err=t("netErr");render()})}},4000);
 </script>
 </body>
 </html>
