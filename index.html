@@ -155,7 +155,7 @@ bn:{
  tBooks:"বইয়ের নাম", tCopies:"মোট কপি", tOnLoan:"ধারে আছে", tOverdue:"বকেয়া", tSales:"মোট বিক্রি",
  overdueList:"বকেয়া তালিকা", daysLate:"দেরি (দিন)", noOverdue:"কোনো বকেয়া নেই।", currentLoans:"সব চলমান ধার", salesList:"বিক্রির তালিকা", noSales:"এখনো কোনো বিক্রি নেই।", noLoans:"কোনো চলমান ধার নেই।",
  setLoanDays:"ধারের সময় (দিন)", setMaxLoans:"একজন সর্বোচ্চ কয়টি বই নিতে পারবেন", setCurrency:"মুদ্রার চিহ্ন", save:"সংরক্ষণ", saved:"সংরক্ষিত হয়েছে।",
- addThis:"এই বইটা যোগ করুন", bought:"কিনলাম", pQty:"কত কপি কিনলেন", pCost:"প্রতি কপির কেনা দাম", costHint:"দিলে মাসিক হিসাবে খরচ হিসেবে যাবে", qtyBad:"কপি সংখ্যা ১ বা তার বেশি হতে হবে।", purchaseSaved:"কেনা সেভ হয়েছে, কপি সংখ্যা বেড়েছে।", monthlyTitle:"মাসিক আয়-ব্যয়", month:"মাস", mBought:"কেনা বই", mSpent:"খরচ", mSold:"বিক্রি বই", mIncome:"আয়", mProfit:"লাভ / ক্ষতি", total:"মোট", noMonthly:"এখনো কোনো কেনা বা বিক্রি নেই। বই ট্যাবে \"কিনলাম\" চেপে কেনা যোগ করুন।", salesToday:"আজকের বিক্রি", salesMonth:"এই মাসের বিক্রি", exportCsv:"Excel-এ ডাউনলোড", exported:"{n}টি বিক্রির ফাইল ডাউনলোড হয়েছে।", labelsAll:"ISBN আছে এমন বইয়েরও লেবেল দেখাও", printLabels:"লেবেল প্রিন্ট করুন", printHint:"প্রতিটা কপির জন্য একটা করে লেবেল। প্রিন্ট করলে শুধু লেবেলগুলোই ছাপা হবে।", unlocked:"কিয়স্ক মোড বন্ধ হয়েছে। এখন সব ট্যাব ব্যবহার করতে পারবেন।", priceBad:"দাম একটা সংখ্যা হতে হবে।", noBooksYet:"আগে \"বই\" ট্যাবে বই যোগ করুন।", emptyBooks:"এখনো কোনো বই নেই। নিচের ফর্ম দিয়ে প্রথম বইটি যোগ করুন।", refresh:"রিফ্রেশ"
+ addThis:"এই বইটা যোগ করুন", exportAll:"সব তথ্য Excel-এ", exportHint:"যেকোনো বোতাম চাপলে সেই তালিকার সব তথ্য একটা ফাইলে নামবে, যা Excel বা Google Sheets-এ খোলা যায়।", loansAll:"ধার ও ফেরতের খাতা", purchasesAll:"বই কেনার তালিকা", joined:"যোগদানের তারিখ", outDate:"ধার নেওয়ার তারিখ", returnedOn:"ফেরতের তারিখ", status:"অবস্থা", stReturned:"ফেরত হয়েছে", stOverdue:"বকেয়া", stOut:"ধারে আছে", bought:"কিনলাম", pQty:"কত কপি কিনলেন", pCost:"প্রতি কপির কেনা দাম", costHint:"দিলে মাসিক হিসাবে খরচ হিসেবে যাবে", qtyBad:"কপি সংখ্যা ১ বা তার বেশি হতে হবে।", purchaseSaved:"কেনা সেভ হয়েছে, কপি সংখ্যা বেড়েছে।", monthlyTitle:"মাসিক আয়-ব্যয়", month:"মাস", mBought:"কেনা বই", mSpent:"খরচ", mSold:"বিক্রি বই", mIncome:"আয়", mProfit:"লাভ / ক্ষতি", total:"মোট", noMonthly:"এখনো কোনো কেনা বা বিক্রি নেই। বই ট্যাবে \"কিনলাম\" চেপে কেনা যোগ করুন।", salesToday:"আজকের বিক্রি", salesMonth:"এই মাসের বিক্রি", exportCsv:"Excel-এ ডাউনলোড", exported:"{n}টি সারির ফাইল ডাউনলোড হয়েছে।", labelsAll:"ISBN আছে এমন বইয়েরও লেবেল দেখাও", printLabels:"লেবেল প্রিন্ট করুন", printHint:"প্রতিটা কপির জন্য একটা করে লেবেল। প্রিন্ট করলে শুধু লেবেলগুলোই ছাপা হবে।", unlocked:"কিয়স্ক মোড বন্ধ হয়েছে। এখন সব ট্যাব ব্যবহার করতে পারবেন।", priceBad:"দাম একটা সংখ্যা হতে হবে।", noBooksYet:"আগে \"বই\" ট্যাবে বই যোগ করুন।", emptyBooks:"এখনো কোনো বই নেই। নিচের ফর্ম দিয়ে প্রথম বইটি যোগ করুন।", refresh:"রিফ্রেশ"
 },
 en:{
  appname:"Library Kiosk", cloud:"Data is stored online (Supabase), so you can sign in from any device.",
@@ -186,7 +186,7 @@ en:{
  tBooks:"Titles", tCopies:"Total copies", tOnLoan:"On loan", tOverdue:"Overdue", tSales:"Total sales",
  overdueList:"Overdue list", daysLate:"Days late", noOverdue:"Nothing is overdue.", currentLoans:"All open loans", salesList:"Sales", noSales:"No sales yet.", noLoans:"No open loans.",
  setLoanDays:"Loan period (days)", setMaxLoans:"Most books one member can borrow", setCurrency:"Currency symbol", save:"Save", saved:"Saved.",
- addThis:"Add this book", bought:"Bought", pQty:"Copies bought", pCost:"Cost per copy", costHint:"If given, counts as an expense in the monthly table", qtyBad:"Copies must be 1 or more.", purchaseSaved:"Purchase saved and copies added.", monthlyTitle:"Monthly income and expenses", month:"Month", mBought:"Books bought", mSpent:"Spent", mSold:"Books sold", mIncome:"Income", mProfit:"Profit / loss", total:"Total", noMonthly:"No purchases or sales yet. Tap \"Bought\" in the Books tab to add a purchase.", salesToday:"Sales today", salesMonth:"Sales this month", exportCsv:"Download for Excel", exported:"Downloaded a file with {n} sales.", labelsAll:"Also show labels for books with an ISBN", printLabels:"Print labels", printHint:"One label per copy. Printing prints only the labels.", unlocked:"Kiosk mode is off. All tabs are available now.", priceBad:"The price must be a number.", noBooksYet:"Add books in the Books tab first.", emptyBooks:"No books yet. Add the first one with the form below.", refresh:"Refresh"
+ addThis:"Add this book", exportAll:"Everything in Excel", exportHint:"Each button downloads every row of that list as a file you can open in Excel or Google Sheets.", loansAll:"Borrow and return log", purchasesAll:"Book purchases", joined:"Joined", outDate:"Borrowed on", returnedOn:"Returned on", status:"Status", stReturned:"Returned", stOverdue:"Overdue", stOut:"On loan", bought:"Bought", pQty:"Copies bought", pCost:"Cost per copy", costHint:"If given, counts as an expense in the monthly table", qtyBad:"Copies must be 1 or more.", purchaseSaved:"Purchase saved and copies added.", monthlyTitle:"Monthly income and expenses", month:"Month", mBought:"Books bought", mSpent:"Spent", mSold:"Books sold", mIncome:"Income", mProfit:"Profit / loss", total:"Total", noMonthly:"No purchases or sales yet. Tap \"Bought\" in the Books tab to add a purchase.", salesToday:"Sales today", salesMonth:"Sales this month", exportCsv:"Download for Excel", exported:"Downloaded a file with {n} rows.", labelsAll:"Also show labels for books with an ISBN", printLabels:"Print labels", printHint:"One label per copy. Printing prints only the labels.", unlocked:"Kiosk mode is off. All tabs are available now.", priceBad:"The price must be a number.", noBooksYet:"Add books in the Books tab first.", emptyBooks:"No books yet. Add the first one with the form below.", refresh:"Refresh"
 }};
 
 /* ---------- state ---------- */
@@ -253,6 +253,36 @@ function downloadCsv(name,head,rows){
   const url=URL.createObjectURL(blob),a=document.createElement("a");
   a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();
   setTimeout(()=>URL.revokeObjectURL(url),10000);
+}
+/* export every row of a table to an Excel-ready CSV */
+async function exportTable(kind){
+  const c=D.lib.currency,day=isoToday(),cash=m=>m==="cash"?t("cash"):t("transfer");
+  const ph=p=>p?'\u2060'+p:"";
+  if(kind==="books"){
+    const r=await fetchAll("books","id,code,isbn,title,author,category,copies,price");
+    downloadCsv("books-"+day+".csv",[t("code"),"ISBN",t("title"),t("author"),t("category"),t("copies"),t("avail"),t("price")+" ("+c+")"],
+      r.map(b=>[b.code,b.isbn?'\u2060'+b.isbn:"",b.title,b.author,b.category,b.copies,b.copies-D.loans.filter(l=>l.book_id===b.id).length,Number(b.price).toFixed(2)]));
+    return r.length}
+  if(kind==="members"){
+    const r=await fetchAll("members","id,name,phone,created_at");
+    downloadCsv("members-"+day+".csv",[t("name"),t("phone"),t("openLoans"),t("joined")],
+      r.map(m=>[m.name,ph(m.phone),D.loans.filter(l=>l.member_id===m.id).length,String(m.created_at).slice(0,10)]));
+    return r.length}
+  if(kind==="loans"){
+    const r=await fetchAll("loans","id,book_id,member_id,out_date,due_date,returned_date");
+    const bs=await fetchAll("books","id,code,title"),ms=await fetchAll("members","id,name,phone");
+    const B=Object.fromEntries(bs.map(x=>[x.id,x])),M=Object.fromEntries(ms.map(x=>[x.id,x])),today=isoToday();
+    downloadCsv("loans-"+day+".csv",["LN",t("code"),t("book"),t("member"),t("phone"),t("outDate"),t("due"),t("returnedOn"),t("status")],
+      r.map(l=>{const b=B[l.book_id]||{},m=M[l.member_id]||{};const st=l.returned_date?t("stReturned"):(l.due_date<today?t("stOverdue"):t("stOut"));
+        return ["LN-"+pad(l.id,4),b.code||"",b.title||"",m.name||"",ph(m.phone),l.out_date,l.due_date,l.returned_date||"",st]}));
+    return r.length}
+  if(kind==="purchases"){
+    const r=await fetchAll("purchases","bought_on,book_title,qty,unit_cost");
+    downloadCsv("purchases-"+day+".csv",[t("date"),t("book"),t("pQty"),t("pCost")+" ("+c+")",t("mSpent")+" ("+c+")"],
+      r.map(x=>[x.bought_on,x.book_title,x.qty,Number(x.unit_cost).toFixed(2),(x.qty*Number(x.unit_cost)).toFixed(2)]));
+    return r.length}
+  if(kind==="sales")return await downloadSalesCsv();
+  if(kind==="monthly"){downloadMonthlyCsv();return (D.monthly||[]).length}
 }
 function downloadMonthlyCsv(){
   const c=D.lib.currency,rows=(D.monthly||[]).map(r=>[r.month,r.bought,r.spent.toFixed(2),r.sold,r.income.toFixed(2),(r.income-r.spent).toFixed(2)]);
@@ -595,7 +625,7 @@ function booksView(){
     ${ui.err?`<div class="err">${esc(ui.err)}</div>`:""}
     ${ui.msg?`<div class="ok">${esc(ui.msg)}</div>`:""}
     <button class="btn primary" type="submit">${t("add")}</button></form>
-  ${D.books.length?`<div class="tablewrap" style="margin-bottom:20px"><table><thead><tr><th>${t("code")}</th><th>${t("title")}</th><th class="num">${t("copies")}</th><th class="num">${t("avail")}</th><th class="num">${t("price")}</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`:`<p class="muted">${t("emptyBooks")}</p>`}
+  ${D.books.length?`<div class="actions" style="justify-content:flex-end;margin:0 0 8px"><button class="btn" data-act="export" data-v="books">⬇ ${t("exportCsv")}</button></div><div class="tablewrap" style="margin-bottom:20px"><table><thead><tr><th>${t("code")}</th><th>${t("title")}</th><th class="num">${t("copies")}</th><th class="num">${t("avail")}</th><th class="num">${t("price")}</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`:`<p class="muted">${t("emptyBooks")}</p>`}
   ${(()=>{const list=D.books.filter(b=>ui.labelsAll||!b.isbn);const items=[];list.forEach(b=>{for(let i=0;i<Math.max(1,b.copies);i++)items.push(b)});
   return `<section id="labelsec"><h2>${t("labelsTitle")}</h2>
   <div class="noprint"><p class="muted">${t("labelsNote")}</p>
@@ -612,6 +642,8 @@ function membersView(){
    <div class="field"><label for="mp">${t("phone")}</label><input id="mp" type="tel" autocomplete="off"></div></div>
    ${ui.err?`<div class="err">${esc(ui.err)}</div>`:""}
    <button class="btn primary" type="submit">${t("add")}</button></form>
+  ${ui.msg?`<div class="ok">${esc(ui.msg)}</div>`:""}
+  ${D.members.length?`<div class="actions" style="justify-content:flex-end;margin:0 0 8px"><button class="btn" data-act="export" data-v="members">⬇ ${t("exportCsv")}</button></div>`:""}
   <div class="tablewrap"><table><thead><tr><th>${t("name")}</th><th>${t("phone")}</th><th class="num">${t("openLoans")}</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 function reportsView(){
@@ -646,7 +678,9 @@ function reportsView(){
   ${ol.length?`<div class="tablewrap" style="margin-bottom:20px"><table>${head}<tbody>${ol.map(loanRow).join("")}</tbody></table></div>`:`<p class="muted">${t("noLoans")}</p>`}
   <div class="row" style="align-items:center;justify-content:space-between;margin-bottom:8px"><h2 style="margin:0;flex:0 1 auto">${t("salesList")}</h2>
   ${tot.count?`<button class="btn primary" style="flex:0 0 auto" data-act="exportcsv">${t("exportCsv")}</button>`:""}</div>
-  ${D.sales.length?`<div class="tablewrap"><table><thead><tr><th>${t("receiptNo")}</th><th>${t("date")}</th><th>${t("book")}</th><th>${t("member")}</th><th class="num">${t("amount")}</th></tr></thead><tbody>${D.sales.map(s=>`<tr><td>${esc(s.invoice_no)}</td><td>${esc(s.sold_on)}</td><td>${esc(s.book_title)}</td><td>${esc(s.buyer||"-")}</td><td class="num">${money(s.price)}</td></tr>`).join("")}</tbody></table></div>`:`<p class="muted">${t("noSales")}</p>`}`;
+  ${D.sales.length?`<div class="tablewrap"><table><thead><tr><th>${t("receiptNo")}</th><th>${t("date")}</th><th>${t("book")}</th><th>${t("member")}</th><th class="num">${t("amount")}</th></tr></thead><tbody>${D.sales.map(s=>`<tr><td>${esc(s.invoice_no)}</td><td>${esc(s.sold_on)}</td><td>${esc(s.book_title)}</td><td>${esc(s.buyer||"-")}</td><td class="num">${money(s.price)}</td></tr>`).join("")}</tbody></table></div>`:`<p class="muted">${t("noSales")}</p>`}
+  <div class="card" style="margin-top:20px"><h2>${t("exportAll")}</h2><p class="muted">${t("exportHint")}</p>
+  <div class="row">${[["books",t("books")],["members",t("members")],["loans",t("loansAll")],["purchases",t("purchasesAll")],["sales",t("salesList")],["monthly",t("monthlyTitle")]].map(x=>`<button class="btn" data-act="export" data-v="${x[0]}">⬇ ${x[1]}</button>`).join("")}</div></div>`;
 }
 function settingsView(){
   const l=D.lib;
@@ -701,6 +735,7 @@ document.addEventListener("click",e=>{
   else if(a==="purchase")go(()=>{ui.purchaseFor=id;window.scrollTo(0,0)});
   else if(a==="purchasecancel")go(()=>{ui.purchaseFor=null});
   else if(a==="exportmonthly"){try{downloadMonthlyCsv()}catch(err){ui.err=errText(err);render()}}
+  else if(a==="export")act(async()=>{const n=await exportTable(v);ui.msg=t("exported").replace("{n}",n)});
   else if(a==="markret")act(async()=>{await rpc("return_loan",{p_loan_id:id})});
 });
 
