@@ -120,7 +120,7 @@ bn:{
  logout:"লগআউট", kiosk:"কিয়স্ক", books:"বই", members:"সদস্য", reports:"রিপোর্ট", settings:"সেটিংস",
  lockKiosk:"কিয়স্ক মোড চালু", exitKiosk:"কিয়স্ক মোড বন্ধ", exitHint:"কিয়স্ক PIN বা পাসওয়ার্ড দিন", unlock:"খুলুন", wrongPass:"পাসওয়ার্ড ঠিক নেই।",
  camStart:"ক্যামেরায় স্ক্যান", camStop:"ক্যামেরা বন্ধ", photoScan:"ছবি তুলে স্ক্যান", camHint:"বারকোডটি ক্যামেরার সামনে ধরুন",
- camFail:"ক্যামেরা চালু করা যায়নি। ব্রাউজারে ক্যামেরার অনুমতি দিন, অথবা \"ছবি তুলে স্ক্যান\" ব্যবহার করুন।",
+ camFail:"ক্যামেরা চালু করা যায়নি। আবার \"ক্যামেরায় স্ক্যান\" চাপুন, না হলে \"ছবি তুলে স্ক্যান\" ব্যবহার করুন।", camDenied:"ক্যামেরার অনুমতি দেওয়া নেই। iPhone-এ: Settings → Safari → Camera → Allow, তারপর পেজ রিফ্রেশ করে আবার চাপুন।", camNone:"এই ডিভাইসে পিছনের ক্যামেরা পাওয়া যায়নি।", camBusy:"ক্যামেরা অন্য কোনো অ্যাপ ব্যবহার করছে। সেটা বন্ধ করে আবার চাপুন।", camSlow:"পড়া যাচ্ছে না? বারকোড ফ্রেমের মাঝে সোজা ধরুন, ১৫-২০ সেমি দূরে, ভালো আলোয়।",
  photoFail:"ছবিতে বারকোড পাওয়া যায়নি। কাছ থেকে, ভালো আলোয় আবার তুলুন।",
  scanTitle:"বইয়ের বারকোড স্ক্যান করুন", scanHint:"স্ক্যানার বইয়ের পিছনের বারকোডে ধরুন। কোড হাতে লিখেও এন্টার দিতে পারেন।", scanBtn:"খুঁজুন",
  notFound:"এই কোডের কোনো বই পাওয়া যায়নি।", by:"লেখক", avail:"এখন আছে", ofcopies:"মোট কপি",
@@ -151,7 +151,7 @@ en:{
  logout:"Log out", kiosk:"Kiosk", books:"Books", members:"Members", reports:"Reports", settings:"Settings",
  lockKiosk:"Start kiosk mode", exitKiosk:"Exit kiosk mode", exitHint:"Enter the kiosk PIN or password", unlock:"Unlock", wrongPass:"Wrong password.",
  camStart:"Scan with camera", camStop:"Stop camera", photoScan:"Take a photo to scan", camHint:"Hold the barcode in front of the camera",
- camFail:"Could not start the camera. Allow camera access in the browser, or use \"Take a photo to scan\".",
+ camFail:"Could not start the camera. Tap \"Scan with camera\" again, or use \"Take a photo to scan\".", camDenied:"Camera access is blocked. On iPhone: Settings → Safari → Camera → Allow, then reload and try again.", camNone:"No back camera was found on this device.", camBusy:"Another app is using the camera. Close it and try again.", camSlow:"Not reading? Hold the barcode straight inside the frame, 15-20 cm away, in good light.",
  photoFail:"No barcode found in the photo. Move closer, use good light and try again.",
  scanTitle:"Scan the book's barcode", scanHint:"Point the scanner at the barcode on the back of the book. You can also type the code and press Enter.", scanBtn:"Find",
  notFound:"No book found for this code.", by:"Author", avail:"Available", ofcopies:"Total copies",
@@ -270,10 +270,11 @@ function receiptText(r){
 }
 
 /* ---------- camera scanning ---------- */
-let camStream=null,camTimer=null,zxReader=null;
+let camStream=null,camTimer=null,camLoop=false,camHintTimer=null;
 function stopCam(){
-  if(camTimer){clearInterval(camTimer);camTimer=null}
-  if(zxReader){try{zxReader.reset()}catch(e){}zxReader=null}
+  camLoop=false;
+  if(camTimer){clearTimeout(camTimer);camTimer=null}
+  if(camHintTimer){clearTimeout(camHintTimer);camHintTimer=null}
   if(camStream){camStream.getTracks().forEach(tr=>tr.stop());camStream=null}
 }
 function onScanned(raw){
@@ -283,22 +284,75 @@ function onScanned(raw){
   if(b)ui.k={step:"book",bookId:b.id};else{ui.err=t("notFound")+" ("+String(raw).slice(0,20)+")";ui.unknownIsbn=looksIsbn(raw)?isbnDigits(raw):""}
   render();
 }
+/* ZXing reader limited to book barcodes, trying hard on each frame */
+function makeZx(){
+  if(!window.ZXing||!ZXing.MultiFormatReader)return null;
+  try{
+    const F=ZXing.BarcodeFormat,h=new Map();
+    h.set(ZXing.DecodeHintType.POSSIBLE_FORMATS,[F.EAN_13,F.EAN_8,F.UPC_A,F.UPC_E,F.CODE_128,F.CODE_39,F.QR_CODE]);
+    h.set(ZXing.DecodeHintType.TRY_HARDER,true);
+    const r=new ZXing.MultiFormatReader();r.setHints(h);return r;
+  }catch(e){return null}
+}
+async function makeDetector(){
+  if(!window.BarcodeDetector)return null;
+  try{
+    const want=["ean_13","ean_8","upc_a","upc_e","code_128","code_39","qr_code"];
+    const have=BarcodeDetector.getSupportedFormats?await BarcodeDetector.getSupportedFormats():want;
+    const f=want.filter(x=>have.includes(x));return f.length?new BarcodeDetector({formats:f}):null;
+  }catch(e){return null}
+}
 async function startCam(){
-  ui.cam=true;ui.err="";ui.msg="";render();
+  stopCam();ui.cam=true;ui.err="";ui.msg="";render();
   const v=document.getElementById("cam");
   try{
-    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia||!v)throw new Error("nocam");
-    camStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false});
-    v.srcObject=camStream;await v.play();
-    if(window.BarcodeDetector){
-      const det=new BarcodeDetector({formats:["code_128","code_39","ean_13","qr_code"]});
-      camTimer=setInterval(async()=>{try{const r=await det.detect(v);if(r&&r.length)onScanned(r[0].rawValue)}catch(e){}},250);
-    }else if(window.ZXing){
-      zxReader=new ZXing.BrowserMultiFormatReader();
-      zxReader.decodeFromStream(camStream,v,(res)=>{if(res)onScanned(res.getText())});
-    }else throw new Error("nolib");
-  }catch(e){stopCam();ui.cam=false;ui.err=t("camFail");render()}
+    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia||!v){const e=new Error("nocam");e.name="NoApi";throw e}
+    camStream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:"environment"},width:{ideal:1280},height:{ideal:720}}});
+    v.setAttribute("playsinline","");v.muted=true;v.srcObject=camStream;await v.play();
+    const track=camStream.getVideoTracks()[0];
+    try{await track.applyConstraints({advanced:[{focusMode:"continuous"}]})}catch(e){}
+    const det=await makeDetector(),zx=makeZx();
+    if(!det&&!zx){const e=new Error("nolib");e.name="NoLib";throw e}
+    const c=document.createElement("canvas"),ctx=c.getContext("2d",{willReadFrequently:true});
+    camLoop=true;
+    camHintTimer=setTimeout(()=>{const tip=document.querySelector(".camwrap .tip");if(tip)tip.textContent=t("camSlow")},12000);
+    const tick=async()=>{
+      if(!camLoop)return;
+      let text=null;
+      if(v.readyState>=2&&v.videoWidth){
+        if(det){try{const r=await det.detect(v);if(r&&r.length)text=r[0].rawValue}catch(e){}}
+        if(!text&&zx){
+          /* read the middle band of the picture, where the frame guide is */
+          const w=v.videoWidth,h=v.videoHeight,sy=Math.round(h*.2),sh=Math.round(h*.6),cw=Math.min(w,1280);
+          c.width=cw;c.height=Math.round(sh*cw/w);ctx.drawImage(v,0,sy,w,sh,0,0,c.width,c.height);
+          try{const src=new ZXing.HTMLCanvasElementLuminanceSource(c);text=zx.decodeWithState(new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(src))).getText()}catch(e){}
+        }
+      }
+      if(!camLoop)return;
+      if(text){try{navigator.vibrate&&navigator.vibrate(80)}catch(e){}onScanned(text);return}
+      camTimer=setTimeout(tick,120);
+    };
+    tick();
+  }catch(e){
+    stopCam();ui.cam=false;
+    const n=e&&e.name;
+    ui.err=n==="NotAllowedError"||n==="SecurityError"?t("camDenied"):n==="NotFoundError"||n==="OverconstrainedError"?t("camNone"):n==="NotReadableError"?t("camBusy"):t("camFail");
+    render();
+  }
 }
+/* An external scanner types the code fast and presses Enter.
+   Catch it even when the scan box has lost focus. */
+let kbBuf="",kbLast=0;
+document.addEventListener("keydown",e=>{
+  const onScan=D.lib&&(ui.locked||ui.tab==="kiosk")&&ui.k.step==="scan"&&!ui.unlocking;
+  if(!onScan)return;
+  const tg=e.target,inField=tg&&(tg.tagName==="INPUT"||tg.tagName==="TEXTAREA"||tg.tagName==="SELECT");
+  if(inField)return;
+  const now=Date.now();if(now-kbLast>150)kbBuf="";kbLast=now;
+  if(e.key==="Enter"){if(kbBuf.length>=3){const code=kbBuf;kbBuf="";e.preventDefault();ui.cam=false;stopCam();ui.err="";ui.msg="";const b=findBook(code);
+      if(b)ui.k={step:"book",bookId:b.id};else{ui.err=t("notFound")+" ("+code.slice(0,20)+")";ui.unknownIsbn=looksIsbn(code)?isbnDigits(code):""}render()}return}
+  if(e.key&&e.key.length===1)kbBuf+=e.key;
+});
 async function decodePhoto(file){
   const url=URL.createObjectURL(file);let text=null;
   try{
@@ -349,7 +403,7 @@ function render(){
   afterRender(tab);
 }
 function afterRender(tab){
-  if(tab==="kiosk"&&ui.k.step==="scan"){const i=document.getElementById("scan");if(i)i.focus()}
+  if(tab==="kiosk"&&ui.k.step==="scan"){const i=document.getElementById("scan");if(i)i.focus({preventScroll:true})}
   if(tab==="kiosk"&&ui.k.step==="borrow"){const i=document.getElementById("kphone");if(i)i.focus()}
   if(ui.unlocking){const i=document.getElementById("upass");if(i)i.focus()}
   if(tab==="books"&&ui.prefillIsbn){const i=document.getElementById("ni");if(i)i.value=ui.prefillIsbn;ui.prefillIsbn="";const n=document.getElementById("nt");if(n)n.focus()}
