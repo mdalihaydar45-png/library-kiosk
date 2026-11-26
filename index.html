@@ -97,6 +97,8 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .busy{opacity:.6;pointer-events:none}
 @media (prefers-reduced-motion:no-preference){.card,.receipt{animation:rise .18s ease-out}}
 @keyframes rise{from{opacity:.4;transform:translateY(4px)}to{opacity:1;transform:none}}
+table.compact{min-width:0}
+@media (max-width:560px){table.compact th,table.compact td{padding:7px 5px;font-size:.78rem}table.compact .pill{padding:1px 6px;font-size:.75rem}}
 .labeltools{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;margin:8px 0 14px}
 .labeltools label{display:flex;gap:8px;align-items:center;margin:0;color:var(--ink);font-size:.95rem}
 .labeltools input[type=checkbox]{width:20px;min-height:20px;height:20px}
@@ -153,7 +155,7 @@ bn:{
  tBooks:"বইয়ের নাম", tCopies:"মোট কপি", tOnLoan:"ধারে আছে", tOverdue:"বকেয়া", tSales:"মোট বিক্রি",
  overdueList:"বকেয়া তালিকা", daysLate:"দেরি (দিন)", noOverdue:"কোনো বকেয়া নেই।", currentLoans:"সব চলমান ধার", salesList:"বিক্রির তালিকা", noSales:"এখনো কোনো বিক্রি নেই।", noLoans:"কোনো চলমান ধার নেই।",
  setLoanDays:"ধারের সময় (দিন)", setMaxLoans:"একজন সর্বোচ্চ কয়টি বই নিতে পারবেন", setCurrency:"মুদ্রার চিহ্ন", save:"সংরক্ষণ", saved:"সংরক্ষিত হয়েছে।",
- addThis:"এই বইটা যোগ করুন", salesToday:"আজকের বিক্রি", salesMonth:"এই মাসের বিক্রি", exportCsv:"Excel-এ ডাউনলোড", exported:"{n}টি বিক্রির ফাইল ডাউনলোড হয়েছে।", labelsAll:"ISBN আছে এমন বইয়েরও লেবেল দেখাও", printLabels:"লেবেল প্রিন্ট করুন", printHint:"প্রতিটা কপির জন্য একটা করে লেবেল। প্রিন্ট করলে শুধু লেবেলগুলোই ছাপা হবে।", unlocked:"কিয়স্ক মোড বন্ধ হয়েছে। এখন সব ট্যাব ব্যবহার করতে পারবেন।", priceBad:"দাম একটা সংখ্যা হতে হবে।", noBooksYet:"আগে \"বই\" ট্যাবে বই যোগ করুন।", emptyBooks:"এখনো কোনো বই নেই। নিচের ফর্ম দিয়ে প্রথম বইটি যোগ করুন।", refresh:"রিফ্রেশ"
+ addThis:"এই বইটা যোগ করুন", bought:"কিনলাম", pQty:"কত কপি কিনলেন", pCost:"প্রতি কপির কেনা দাম", costHint:"দিলে মাসিক হিসাবে খরচ হিসেবে যাবে", qtyBad:"কপি সংখ্যা ১ বা তার বেশি হতে হবে।", purchaseSaved:"কেনা সেভ হয়েছে, কপি সংখ্যা বেড়েছে।", monthlyTitle:"মাসিক আয়-ব্যয়", month:"মাস", mBought:"কেনা বই", mSpent:"খরচ", mSold:"বিক্রি বই", mIncome:"আয়", mProfit:"লাভ / ক্ষতি", total:"মোট", noMonthly:"এখনো কোনো কেনা বা বিক্রি নেই। বই ট্যাবে \"কিনলাম\" চেপে কেনা যোগ করুন।", salesToday:"আজকের বিক্রি", salesMonth:"এই মাসের বিক্রি", exportCsv:"Excel-এ ডাউনলোড", exported:"{n}টি বিক্রির ফাইল ডাউনলোড হয়েছে।", labelsAll:"ISBN আছে এমন বইয়েরও লেবেল দেখাও", printLabels:"লেবেল প্রিন্ট করুন", printHint:"প্রতিটা কপির জন্য একটা করে লেবেল। প্রিন্ট করলে শুধু লেবেলগুলোই ছাপা হবে।", unlocked:"কিয়স্ক মোড বন্ধ হয়েছে। এখন সব ট্যাব ব্যবহার করতে পারবেন।", priceBad:"দাম একটা সংখ্যা হতে হবে।", noBooksYet:"আগে \"বই\" ট্যাবে বই যোগ করুন।", emptyBooks:"এখনো কোনো বই নেই। নিচের ফর্ম দিয়ে প্রথম বইটি যোগ করুন।", refresh:"রিফ্রেশ"
 },
 en:{
  appname:"Library Kiosk", cloud:"Data is stored online (Supabase), so you can sign in from any device.",
@@ -184,7 +186,7 @@ en:{
  tBooks:"Titles", tCopies:"Total copies", tOnLoan:"On loan", tOverdue:"Overdue", tSales:"Total sales",
  overdueList:"Overdue list", daysLate:"Days late", noOverdue:"Nothing is overdue.", currentLoans:"All open loans", salesList:"Sales", noSales:"No sales yet.", noLoans:"No open loans.",
  setLoanDays:"Loan period (days)", setMaxLoans:"Most books one member can borrow", setCurrency:"Currency symbol", save:"Save", saved:"Saved.",
- addThis:"Add this book", salesToday:"Sales today", salesMonth:"Sales this month", exportCsv:"Download for Excel", exported:"Downloaded a file with {n} sales.", labelsAll:"Also show labels for books with an ISBN", printLabels:"Print labels", printHint:"One label per copy. Printing prints only the labels.", unlocked:"Kiosk mode is off. All tabs are available now.", priceBad:"The price must be a number.", noBooksYet:"Add books in the Books tab first.", emptyBooks:"No books yet. Add the first one with the form below.", refresh:"Refresh"
+ addThis:"Add this book", bought:"Bought", pQty:"Copies bought", pCost:"Cost per copy", costHint:"If given, counts as an expense in the monthly table", qtyBad:"Copies must be 1 or more.", purchaseSaved:"Purchase saved and copies added.", monthlyTitle:"Monthly income and expenses", month:"Month", mBought:"Books bought", mSpent:"Spent", mSold:"Books sold", mIncome:"Income", mProfit:"Profit / loss", total:"Total", noMonthly:"No purchases or sales yet. Tap \"Bought\" in the Books tab to add a purchase.", salesToday:"Sales today", salesMonth:"Sales this month", exportCsv:"Download for Excel", exported:"Downloaded a file with {n} sales.", labelsAll:"Also show labels for books with an ISBN", printLabels:"Print labels", printHint:"One label per copy. Printing prints only the labels.", unlocked:"Kiosk mode is off. All tabs are available now.", priceBad:"The price must be a number.", noBooksYet:"Add books in the Books tab first.", emptyBooks:"No books yet. Add the first one with the form below.", refresh:"Refresh"
 }};
 
 /* ---------- state ---------- */
@@ -212,7 +214,7 @@ const normPhone=p=>asciiDigits(p).replace(/[^\d+]/g,"");
 /* map database error codes to friendly text */
 function errText(e){
   const m=String((e&&(e.message||e.error_description))||e||"");
-  const map={out_of_stock:"outOfStock",no_stock:"noStock",limit_hit:"limitHit",name_phone_required:"needNamePhone",due_in_past:"datePast",book_not_found:"notFound"};
+  const map={qty_invalid:"qtyBad",cost_invalid:"priceBad",out_of_stock:"outOfStock",no_stock:"noStock",limit_hit:"limitHit",name_phone_required:"needNamePhone",due_in_past:"datePast",book_not_found:"notFound"};
   for(const k in map)if(m.includes(k))return t(map[k]);
   if(/foreign key|violates.*constraint.*loans/i.test(m))return t("removeBlocked");
   if(/members_library_id_phone/i.test(m))return t("phoneUsed");
@@ -236,16 +238,38 @@ async function loadAll(){
   const today=isoToday(),month=today.slice(0,7);let tt=0,tm=0,ta=0;
   all.forEach(x=>{const v=Number(x.price);ta+=v;if(x.sold_on===today)tt+=v;if(String(x.sold_on).slice(0,7)===month)tm+=v});
   D.tot={today:tt,month:tm,all:ta,count:all.length};
+  const pur=await fetchAll("purchases","qty,unit_cost,bought_on");
+  const M={};const mrow=k=>M[k]||(M[k]={month:k,bought:0,spent:0,sold:0,income:0});
+  pur.forEach(x=>{const r=mrow(String(x.bought_on).slice(0,7));r.bought+=x.qty;r.spent+=x.qty*Number(x.unit_cost)});
+  all.forEach(x=>{const r=mrow(String(x.sold_on).slice(0,7));r.sold+=1;r.income+=Number(x.price)});
+  D.monthly=Object.values(M).sort((a,b)=>b.month.localeCompare(a.month));
 }
-async function fetchAllSales(cols){
+const BN_MONTHS=["জানুয়ারি","ফেব্রুয়ারি","মার্চ","এপ্রিল","মে","জুন","জুলাই","আগস্ট","সেপ্টেম্বর","অক্টোবর","নভেম্বর","ডিসেম্বর"];
+const EN_MONTHS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+function monthName(k){const [y,mo]=k.split("-").map(Number);return (lang==="bn"?BN_MONTHS:EN_MONTHS)[mo-1]+" "+y}
+function downloadCsv(name,head,rows){
+  const lines=[head.map(csvCell).join(",")].concat(rows.map(r=>r.map(csvCell).join(",")));
+  const blob=new Blob(["\ufeff"+lines.join("\r\n")],{type:"text/csv;charset=utf-8"});
+  const url=URL.createObjectURL(blob),a=document.createElement("a");
+  a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),10000);
+}
+function downloadMonthlyCsv(){
+  const c=D.lib.currency,rows=(D.monthly||[]).map(r=>[r.month,r.bought,r.spent.toFixed(2),r.sold,r.income.toFixed(2),(r.income-r.spent).toFixed(2)]);
+  const tot=(D.monthly||[]).reduce((a,r)=>{a[0]+=r.bought;a[1]+=r.spent;a[2]+=r.sold;a[3]+=r.income;return a},[0,0,0,0]);
+  rows.push([t("total"),tot[0],tot[1].toFixed(2),tot[2],tot[3].toFixed(2),(tot[3]-tot[1]).toFixed(2)]);
+  downloadCsv("monthly-"+isoToday()+".csv",[t("month"),t("mBought"),t("mSpent")+" ("+c+")",t("mSold"),t("mIncome")+" ("+c+")",t("mProfit")+" ("+c+")"],rows);
+}
+function fetchAllSales(cols){return fetchAll("sales",cols)}
+async function fetchAll(table,cols){
   const out=[],page=1000;
   for(let from=0;;from+=page){
-    const {data,error}=await sb.from("sales").select(cols).order("id",{ascending:true}).range(from,from+page-1);
+    const {data,error}=await sb.from(table).select(cols).order("id",{ascending:true}).range(from,from+page-1);
     if(error)throw error;out.push(...data);if(data.length<page)break;
   }
   return out;
 }
-function csvCell(v){v=String(v==null?"":v);if(/^[=+\-@]/.test(v))v="'"+v;return /[",\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
+function csvCell(v){v=String(v==null?"":v);if(/^[=+\-@]/.test(v)&&!/^-?\d+(\.\d+)?$/.test(v))v="'"+v;return /[",\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
 async function downloadSalesCsv(){
   const rows=await fetchAllSales("invoice_no,sold_on,book_title,buyer,phone,price,method");
   const head=[t("receiptNo"),t("date"),t("book"),t("member"),t("phone"),t("amount")+" ("+D.lib.currency+")",t("method")];
@@ -552,14 +576,22 @@ function booksView(){
   const rows=D.books.map(b=>`<tr><td><b>${esc(b.code)}</b></td><td>${esc(b.title)}<div class="muted" style="font-size:.85rem">${esc(b.author)}${b.category?" · "+esc(b.category):""}${b.isbn?" · ISBN "+esc(b.isbn):""}</div></td>
     <td class="num">${b.copies} <button class="btn" style="min-height:30px;padding:0 8px" data-act="copies" data-id="${b.id}" data-d="-1" aria-label="-1">−</button><button class="btn" style="min-height:30px;padding:0 8px" data-act="copies" data-id="${b.id}" data-d="1" aria-label="+1">+</button></td>
     <td class="num">${availOf(b)}</td><td class="num"><input class="priceedit" data-id="${b.id}" inputmode="decimal" aria-label="${t("price")}" value="${b.price}" style="width:90px;min-height:34px;padding:4px 8px;text-align:right"></td>
-    <td>${delCell("book",b.id)}</td></tr>`).join("");
-  return `<form class="card" data-form="addbook" style="margin-bottom:16px"><h3>${t("addBook")}</h3>
+    <td style="white-space:nowrap"><button class="btn" style="min-height:32px" data-act="purchase" data-id="${b.id}">${t("bought")}</button> ${delCell("book",b.id)}</td></tr>`).join("");
+  const pb=ui.purchaseFor?bookById(ui.purchaseFor):null;
+  const purchaseForm=pb?`<form class="card" data-form="purchase" style="margin-bottom:16px;border-color:var(--accent)"><h3>${t("bought")}: ${esc(pb.title)}</h3>
+    <div class="row"><div class="field"><label for="pq">${t("pQty")}</label><input id="pq" inputmode="numeric" autocomplete="off" value="1"></div>
+    <div class="field"><label for="pc">${t("pCost")} (${esc(D.lib.currency)})</label><input id="pc" inputmode="decimal" autocomplete="off" placeholder="0"></div>
+    <div class="field"><label for="pd">${t("date")}</label><input id="pd" type="date" max="${isoToday()}" value="${isoToday()}"></div></div>
+    ${ui.err?`<div class="err">${esc(ui.err)}</div>`:""}
+    <div class="actions"><button class="btn primary" type="submit">${t("save")}</button><button class="btn" type="button" data-act="purchasecancel">${t("cancel")}</button></div></form>`:"";
+  return `${purchaseForm}<form class="card" data-form="addbook" style="margin-bottom:16px"><h3>${t("addBook")}</h3>
     <div class="row"><div class="field"><label for="nt">${t("title")}</label><input id="nt" autocomplete="off"></div>
     <div class="field"><label for="na">${t("author")}</label><input id="na" autocomplete="off"></div></div>
     <div class="field"><label for="ni">${t("isbn")} ${t("optional")}</label><input id="ni" inputmode="numeric" autocomplete="off" placeholder="978…"></div>
     <div class="row"><div class="field"><label for="nc">${t("category")}</label><input id="nc" autocomplete="off"></div>
     <div class="field"><label for="nn">${t("copies")}</label><input id="nn" inputmode="numeric" autocomplete="off" value="1"></div>
     <div class="field"><label for="np">${t("price")} (${esc(D.lib.currency)})</label><input id="np" inputmode="decimal" autocomplete="off" placeholder="0"></div></div>
+    <div class="field"><label for="ncost">${t("pCost")} (${esc(D.lib.currency)}) ${t("optional")}</label><input id="ncost" inputmode="decimal" autocomplete="off" placeholder="${t("costHint")}"></div>
     ${ui.err?`<div class="err">${esc(ui.err)}</div>`:""}
     ${ui.msg?`<div class="ok">${esc(ui.msg)}</div>`:""}
     <button class="btn primary" type="submit">${t("add")}</button></form>
@@ -600,6 +632,14 @@ function reportsView(){
    <div class="tile"><b>${money(tot.today)}</b><span>${t("salesToday")}</span></div>
    <div class="tile"><b>${money(tot.month)}</b><span>${t("salesMonth")}</span></div>
    <div class="tile"><b>${money(tot.all)}</b><span>${t("tSales")} (${tot.count})</span></div></div>
+  <div class="row" style="align-items:center;justify-content:space-between;margin-bottom:8px"><h2 style="margin:0;flex:0 1 auto">${t("monthlyTitle")}</h2>
+  ${(D.monthly||[]).length?`<button class="btn primary" style="flex:0 0 auto" data-act="exportmonthly">${t("exportCsv")}</button>`:""}</div>
+  ${(D.monthly||[]).length?(()=>{const tot=D.monthly.reduce((a,r)=>{a.b+=r.bought;a.s+=r.spent;a.n+=r.sold;a.i+=r.income;return a},{b:0,s:0,n:0,i:0});
+    const pl=v=>`<span class="pill ${v<0?"bad":""}">${v<0?"−":""}${money(Math.abs(v))}</span>`;
+    return `<div class="tablewrap" style="margin-bottom:20px"><table class="compact"><thead><tr><th>${t("month")}</th><th class="num">${t("mBought")}</th><th class="num">${t("mSpent")}</th><th class="num">${t("mSold")}</th><th class="num">${t("mIncome")}</th><th class="num">${t("mProfit")}</th></tr></thead><tbody>
+    ${D.monthly.map(r=>`<tr><td>${esc(monthName(r.month))}</td><td class="num">${r.bought}</td><td class="num">${money(r.spent)}</td><td class="num">${r.sold}</td><td class="num">${money(r.income)}</td><td class="num">${pl(r.income-r.spent)}</td></tr>`).join("")}
+    <tr><td><b>${t("total")}</b></td><td class="num"><b>${tot.b}</b></td><td class="num"><b>${money(tot.s)}</b></td><td class="num"><b>${tot.n}</b></td><td class="num"><b>${money(tot.i)}</b></td><td class="num">${pl(tot.i-tot.s)}</td></tr></tbody></table></div>`})()
+  :`<p class="muted">${t("noMonthly")}</p>`}
   <h2>${t("overdueList")}</h2>
   ${overdue.length?`<div class="tablewrap" style="margin-bottom:20px"><table>${head}<tbody>${overdue.map(loanRow).join("")}</tbody></table></div>`:`<p class="muted">${t("noOverdue")}</p>`}
   <h2>${t("currentLoans")}</h2>
@@ -658,6 +698,9 @@ document.addEventListener("click",e=>{
   else if(a==="delmember")act(async()=>{ui.confirmDel=null;const {error}=await sb.from("members").delete().eq("id",id);if(error)throw error});
   else if(a==="printlabels"){try{window.print()}catch(err){}}
   else if(a==="exportcsv")act(async()=>{const n=await downloadSalesCsv();ui.msg=t("exported").replace("{n}",n)});
+  else if(a==="purchase")go(()=>{ui.purchaseFor=id;window.scrollTo(0,0)});
+  else if(a==="purchasecancel")go(()=>{ui.purchaseFor=null});
+  else if(a==="exportmonthly"){try{downloadMonthlyCsv()}catch(err){ui.err=errText(err);render()}}
   else if(a==="markret")act(async()=>{await rpc("return_loan",{p_loan_id:id})});
 });
 
@@ -711,12 +754,26 @@ document.addEventListener("submit",e=>{
     if(rawIsbn&&!looksIsbn(rawIsbn)){ui.err=t("isbnBad");render();return}
     const dup=isbn?findBook(isbn):null;
     /* read every field now: act() re-renders the form before the callback runs */
-    const row={library_id:D.lib.id,code:"",isbn:isbn||null,title,author:val("na").trim(),category:val("nc").trim(),copies,price:Math.max(0,num(val("np"))||0)};
+    const costRaw=val("ncost").trim(),cost=costRaw?num(costRaw):null;
+    if(costRaw&&!(cost>=0)){ui.err=t("priceBad");render();return}
+    const row={library_id:D.lib.id,code:"",isbn:isbn||null,title,author:val("na").trim(),category:val("nc").trim(),copies:cost!=null?0:copies,price:Math.max(0,num(val("np"))||0)};
     act(async()=>{
-      if(dup){const {error}=await sb.from("books").update({copies:dup.copies+copies}).eq("id",dup.id);if(error)throw error;ui.msg=t("isbnAdded");return}
-      const {error}=await sb.from("books").insert(row);
-      if(error)throw error;
+      let id;
+      if(dup){
+        if(cost==null){const {error}=await sb.from("books").update({copies:dup.copies+copies}).eq("id",dup.id);if(error)throw error;ui.msg=t("isbnAdded");return}
+        id=dup.id;ui.msg=t("isbnAdded");
+      }else{
+        const {data,error}=await sb.from("books").insert(row).select("id").single();
+        if(error)throw error;id=data.id;
+      }
+      /* a cost was given: copies come in through a recorded purchase */
+      if(cost!=null)await rpc("record_purchase",{p_book_id:id,p_qty:copies,p_unit_cost:cost,p_date:isoToday()});
     });
+  }else if(kind==="purchase"){
+    const id=ui.purchaseFor,q=Math.floor(num(val("pq"))),c=num(val("pc")),d=val("pd")||isoToday();
+    if(!(q>=1)){ui.err=t("qtyBad");render();return}
+    if(!(c>=0)){ui.err=t("priceBad");render();return}
+    act(async()=>{await rpc("record_purchase",{p_book_id:id,p_qty:q,p_unit_cost:c,p_date:d});ui.purchaseFor=null;ui.msg=t("purchaseSaved")});
   }else if(kind==="addmember"){
     const n=val("mn").trim(),p=normPhone(val("mp"));
     if(!n||!p){ui.err=t("needNamePhone");render();return}
