@@ -140,7 +140,7 @@ bn:{
  tBooks:"বইয়ের নাম", tCopies:"মোট কপি", tOnLoan:"ধারে আছে", tOverdue:"বকেয়া", tSales:"মোট বিক্রি",
  overdueList:"বকেয়া তালিকা", daysLate:"দেরি (দিন)", noOverdue:"কোনো বকেয়া নেই।", currentLoans:"সব চলমান ধার", salesList:"বিক্রির তালিকা", noSales:"এখনো কোনো বিক্রি নেই।", noLoans:"কোনো চলমান ধার নেই।",
  setLoanDays:"ধারের সময় (দিন)", setMaxLoans:"একজন সর্বোচ্চ কয়টি বই নিতে পারবেন", setCurrency:"মুদ্রার চিহ্ন", save:"সংরক্ষণ", saved:"সংরক্ষিত হয়েছে।",
- addThis:"এই বইটা যোগ করুন", noBooksYet:"আগে \"বই\" ট্যাবে বই যোগ করুন।", emptyBooks:"এখনো কোনো বই নেই। নিচের ফর্ম দিয়ে প্রথম বইটি যোগ করুন।", refresh:"রিফ্রেশ"
+ addThis:"এই বইটা যোগ করুন", priceBad:"দাম একটা সংখ্যা হতে হবে।", noBooksYet:"আগে \"বই\" ট্যাবে বই যোগ করুন।", emptyBooks:"এখনো কোনো বই নেই। নিচের ফর্ম দিয়ে প্রথম বইটি যোগ করুন।", refresh:"রিফ্রেশ"
 },
 en:{
  appname:"Library Kiosk", cloud:"Data is stored online (Supabase), so you can sign in from any device.",
@@ -171,7 +171,7 @@ en:{
  tBooks:"Titles", tCopies:"Total copies", tOnLoan:"On loan", tOverdue:"Overdue", tSales:"Total sales",
  overdueList:"Overdue list", daysLate:"Days late", noOverdue:"Nothing is overdue.", currentLoans:"All open loans", salesList:"Sales", noSales:"No sales yet.", noLoans:"No open loans.",
  setLoanDays:"Loan period (days)", setMaxLoans:"Most books one member can borrow", setCurrency:"Currency symbol", save:"Save", saved:"Saved.",
- addThis:"Add this book", noBooksYet:"Add books in the Books tab first.", emptyBooks:"No books yet. Add the first one with the form below.", refresh:"Refresh"
+ addThis:"Add this book", priceBad:"The price must be a number.", noBooksYet:"Add books in the Books tab first.", emptyBooks:"No books yet. Add the first one with the form below.", refresh:"Refresh"
 }};
 
 /* ---------- state ---------- */
@@ -191,7 +191,9 @@ const bookById=id=>D.books.find(b=>b.id===id);
 const memberById=id=>D.members.find(m=>m.id===id);
 const onLoanCount=bookId=>D.loans.filter(l=>l.book_id===bookId).length;
 const availOf=b=>b.copies-onLoanCount(b.id);
-const normPhone=p=>String(p||"").replace(/[^\d+]/g,"");
+const asciiDigits=v=>String(v==null?"":v).replace(/[০-৯]/g,c=>String(c.charCodeAt(0)-0x09E6)).replace(/[٠-٩]/g,c=>String(c.charCodeAt(0)-0x0660));
+const num=v=>{const x=parseFloat(asciiDigits(v).replace(/,/g,".").replace(/[^\d.]/g,""));return isFinite(x)?x:NaN};
+const normPhone=p=>asciiDigits(p).replace(/[^\d+]/g,"");
 
 /* map database error codes to friendly text */
 function errText(e){
@@ -305,6 +307,12 @@ async function decodePhoto(file){
   }finally{URL.revokeObjectURL(url)}
   return text;
 }
+document.addEventListener("change",e=>{
+  const el=e.target;if(!el||!el.classList||!el.classList.contains("priceedit"))return;
+  const id=Number(el.dataset.id),v=num(el.value);
+  if(!(v>=0)){ui.err=t("priceBad");render();return}
+  act(async()=>{const {error}=await sb.from("books").update({price:v}).eq("id",id);if(error)throw error;ui.msg=t("saved")});
+});
 document.addEventListener("change",async e=>{
   if(!e.target||e.target.id!=="photo"||!e.target.files||!e.target.files[0])return;
   ui.photoBusy=true;
@@ -449,15 +457,15 @@ function delCell(kind,id){
 function booksView(){
   const rows=D.books.map(b=>`<tr><td><b>${esc(b.code)}</b></td><td>${esc(b.title)}<div class="muted" style="font-size:.85rem">${esc(b.author)}${b.category?" · "+esc(b.category):""}${b.isbn?" · ISBN "+esc(b.isbn):""}</div></td>
     <td class="num">${b.copies} <button class="btn" style="min-height:30px;padding:0 8px" data-act="copies" data-id="${b.id}" data-d="-1" aria-label="-1">−</button><button class="btn" style="min-height:30px;padding:0 8px" data-act="copies" data-id="${b.id}" data-d="1" aria-label="+1">+</button></td>
-    <td class="num">${availOf(b)}</td><td class="num">${money(b.price)}</td>
+    <td class="num">${availOf(b)}</td><td class="num"><input class="priceedit" data-id="${b.id}" inputmode="decimal" aria-label="${t("price")}" value="${b.price}" style="width:90px;min-height:34px;padding:4px 8px;text-align:right"></td>
     <td>${delCell("book",b.id)}</td></tr>`).join("");
   return `<form class="card" data-form="addbook" style="margin-bottom:16px"><h3>${t("addBook")}</h3>
     <div class="row"><div class="field"><label for="nt">${t("title")}</label><input id="nt" autocomplete="off"></div>
     <div class="field"><label for="na">${t("author")}</label><input id="na" autocomplete="off"></div></div>
     <div class="field"><label for="ni">${t("isbn")} ${t("optional")}</label><input id="ni" inputmode="numeric" autocomplete="off" placeholder="978…"></div>
     <div class="row"><div class="field"><label for="nc">${t("category")}</label><input id="nc" autocomplete="off"></div>
-    <div class="field"><label for="nn">${t("copies")}</label><input id="nn" type="number" min="1" value="1"></div>
-    <div class="field"><label for="np">${t("price")} (${esc(D.lib.currency)})</label><input id="np" type="number" min="0" step="0.5" value="0"></div></div>
+    <div class="field"><label for="nn">${t("copies")}</label><input id="nn" inputmode="numeric" autocomplete="off" value="1"></div>
+    <div class="field"><label for="np">${t("price")} (${esc(D.lib.currency)})</label><input id="np" inputmode="decimal" autocomplete="off" placeholder="0"></div></div>
     ${ui.err?`<div class="err">${esc(ui.err)}</div>`:""}
     ${ui.msg?`<div class="ok">${esc(ui.msg)}</div>`:""}
     <button class="btn primary" type="submit">${t("add")}</button></form>
@@ -500,8 +508,8 @@ function settingsView(){
   const l=D.lib;
   return `<form class="card" data-form="settings" style="max-width:520px"><h3>${t("settings")}</h3>
    <div class="field"><label for="sn">${t("libname")}</label><input id="sn" value="${esc(l.name)}"></div>
-   <div class="field"><label for="sl">${t("setLoanDays")}</label><input id="sl" type="number" min="1" value="${l.loan_days}"></div>
-   <div class="field"><label for="sm">${t("setMaxLoans")}</label><input id="sm" type="number" min="1" value="${l.max_loans}"></div>
+   <div class="field"><label for="sl">${t("setLoanDays")}</label><input id="sl" inputmode="numeric" value="${l.loan_days}"></div>
+   <div class="field"><label for="sm">${t("setMaxLoans")}</label><input id="sm" inputmode="numeric" value="${l.max_loans}"></div>
    <div class="field"><label for="sc">${t("setCurrency")}</label><input id="sc" maxlength="4" value="${esc(l.currency)}"></div>
    <div class="field"><label for="sp">${t("setPin")}</label><input id="sp" inputmode="numeric" maxlength="4" autocomplete="off" value="${esc(l.kiosk_pin||"")}"></div>
    ${ui.err?`<div class="err">${esc(ui.err)}</div>`:""}
@@ -565,8 +573,8 @@ document.addEventListener("submit",e=>{
       if(!data.session){ui.msg=t("checkEmail");ui.authTab="login"}
     });
   }else if(kind==="unlock"){
-    const entered=val("upass").trim(),pin=D.lib.kiosk_pin;
-    if(entered&&pin&&entered===pin){ui.locked=false;ui.unlocking=false;render();return}
+    const entered=val("upass").trim(),pin=D.lib.kiosk_pin,enteredPin=asciiDigits(entered);
+    if(entered&&pin&&enteredPin===pin){ui.locked=false;ui.unlocking=false;render();return}
     if(!entered){ui.err=t("wrongPass");render();return}
     act(async()=>{const {error}=await sb.auth.signInWithPassword({email:D.user.email,password:entered});
       if(error)throw new Error(t("wrongPass"));ui.locked=false;ui.unlocking=false});
@@ -592,13 +600,15 @@ document.addEventListener("submit",e=>{
     });
   }else if(kind==="addbook"){
     const title=val("nt").trim(),rawIsbn=isbnDigits(val("ni")),isbn=rawIsbn?(isbnForms(rawIsbn).find(x=>x.length===13)||rawIsbn):"";
-    const copies=Math.max(1,parseInt(val("nn"),10)||1);
+    const copies=Math.max(1,Math.floor(num(val("nn")))||1);
     if(!title){ui.err=t("fillAll");render();return}
     if(rawIsbn&&!looksIsbn(rawIsbn)){ui.err=t("isbnBad");render();return}
     const dup=isbn?findBook(isbn):null;
+    /* read every field now: act() re-renders the form before the callback runs */
+    const row={library_id:D.lib.id,code:"",isbn:isbn||null,title,author:val("na").trim(),category:val("nc").trim(),copies,price:Math.max(0,num(val("np"))||0)};
     act(async()=>{
       if(dup){const {error}=await sb.from("books").update({copies:dup.copies+copies}).eq("id",dup.id);if(error)throw error;ui.msg=t("isbnAdded");return}
-      const {error}=await sb.from("books").insert({library_id:D.lib.id,code:"",isbn:isbn||null,title,author:val("na").trim(),category:val("nc").trim(),copies,price:Math.max(0,parseFloat(val("np"))||0)});
+      const {error}=await sb.from("books").insert(row);
       if(error)throw error;
     });
   }else if(kind==="addmember"){
@@ -606,9 +616,9 @@ document.addEventListener("submit",e=>{
     if(!n||!p){ui.err=t("needNamePhone");render();return}
     act(async()=>{const {error}=await sb.from("members").insert({library_id:D.lib.id,name:n,phone:p});if(error)throw error});
   }else if(kind==="settings"){
-    const pin=val("sp").trim();
+    const pin=asciiDigits(val("sp")).trim();
     if(pin&&!/^\d{4}$/.test(pin)){ui.err=t("pinBad");render();return}
-    const patch={name:val("sn").trim()||D.lib.name,loan_days:Math.max(1,parseInt(val("sl"),10)||14),max_loans:Math.max(1,parseInt(val("sm"),10)||3),currency:val("sc")||"৳",kiosk_pin:pin||null};
+    const patch={name:val("sn").trim()||D.lib.name,loan_days:Math.max(1,Math.floor(num(val("sl")))||14),max_loans:Math.max(1,Math.floor(num(val("sm")))||3),currency:val("sc")||"৳",kiosk_pin:pin||null};
     act(async()=>{const {data,error}=await sb.from("libraries").update(patch).eq("id",D.lib.id).select().single();if(error)throw error;D.lib=data;ui.msg=t("saved")});
   }
 });
