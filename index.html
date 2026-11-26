@@ -153,7 +153,7 @@ bn:{
  tBooks:"বইয়ের নাম", tCopies:"মোট কপি", tOnLoan:"ধারে আছে", tOverdue:"বকেয়া", tSales:"মোট বিক্রি",
  overdueList:"বকেয়া তালিকা", daysLate:"দেরি (দিন)", noOverdue:"কোনো বকেয়া নেই।", currentLoans:"সব চলমান ধার", salesList:"বিক্রির তালিকা", noSales:"এখনো কোনো বিক্রি নেই।", noLoans:"কোনো চলমান ধার নেই।",
  setLoanDays:"ধারের সময় (দিন)", setMaxLoans:"একজন সর্বোচ্চ কয়টি বই নিতে পারবেন", setCurrency:"মুদ্রার চিহ্ন", save:"সংরক্ষণ", saved:"সংরক্ষিত হয়েছে।",
- addThis:"এই বইটা যোগ করুন", labelsAll:"ISBN আছে এমন বইয়েরও লেবেল দেখাও", printLabels:"লেবেল প্রিন্ট করুন", printHint:"প্রতিটা কপির জন্য একটা করে লেবেল। প্রিন্ট করলে শুধু লেবেলগুলোই ছাপা হবে।", unlocked:"কিয়স্ক মোড বন্ধ হয়েছে। এখন সব ট্যাব ব্যবহার করতে পারবেন।", priceBad:"দাম একটা সংখ্যা হতে হবে।", noBooksYet:"আগে \"বই\" ট্যাবে বই যোগ করুন।", emptyBooks:"এখনো কোনো বই নেই। নিচের ফর্ম দিয়ে প্রথম বইটি যোগ করুন।", refresh:"রিফ্রেশ"
+ addThis:"এই বইটা যোগ করুন", salesToday:"আজকের বিক্রি", salesMonth:"এই মাসের বিক্রি", exportCsv:"Excel-এ ডাউনলোড", exported:"{n}টি বিক্রির ফাইল ডাউনলোড হয়েছে।", labelsAll:"ISBN আছে এমন বইয়েরও লেবেল দেখাও", printLabels:"লেবেল প্রিন্ট করুন", printHint:"প্রতিটা কপির জন্য একটা করে লেবেল। প্রিন্ট করলে শুধু লেবেলগুলোই ছাপা হবে।", unlocked:"কিয়স্ক মোড বন্ধ হয়েছে। এখন সব ট্যাব ব্যবহার করতে পারবেন।", priceBad:"দাম একটা সংখ্যা হতে হবে।", noBooksYet:"আগে \"বই\" ট্যাবে বই যোগ করুন।", emptyBooks:"এখনো কোনো বই নেই। নিচের ফর্ম দিয়ে প্রথম বইটি যোগ করুন।", refresh:"রিফ্রেশ"
 },
 en:{
  appname:"Library Kiosk", cloud:"Data is stored online (Supabase), so you can sign in from any device.",
@@ -184,7 +184,7 @@ en:{
  tBooks:"Titles", tCopies:"Total copies", tOnLoan:"On loan", tOverdue:"Overdue", tSales:"Total sales",
  overdueList:"Overdue list", daysLate:"Days late", noOverdue:"Nothing is overdue.", currentLoans:"All open loans", salesList:"Sales", noSales:"No sales yet.", noLoans:"No open loans.",
  setLoanDays:"Loan period (days)", setMaxLoans:"Most books one member can borrow", setCurrency:"Currency symbol", save:"Save", saved:"Saved.",
- addThis:"Add this book", labelsAll:"Also show labels for books with an ISBN", printLabels:"Print labels", printHint:"One label per copy. Printing prints only the labels.", unlocked:"Kiosk mode is off. All tabs are available now.", priceBad:"The price must be a number.", noBooksYet:"Add books in the Books tab first.", emptyBooks:"No books yet. Add the first one with the form below.", refresh:"Refresh"
+ addThis:"Add this book", salesToday:"Sales today", salesMonth:"Sales this month", exportCsv:"Download for Excel", exported:"Downloaded a file with {n} sales.", labelsAll:"Also show labels for books with an ISBN", printLabels:"Print labels", printHint:"One label per copy. Printing prints only the labels.", unlocked:"Kiosk mode is off. All tabs are available now.", priceBad:"The price must be a number.", noBooksYet:"Add books in the Books tab first.", emptyBooks:"No books yet. Add the first one with the form below.", refresh:"Refresh"
 }};
 
 /* ---------- state ---------- */
@@ -231,6 +231,30 @@ async function loadAll(){
   ]);
   const bad=[b,m,l,s].find(x=>x.error);if(bad)throw bad.error;
   D.books=b.data.map(x=>({...x,price:Number(x.price)}));D.members=m.data;D.loans=l.data;D.sales=s.data.map(x=>({...x,price:Number(x.price)}));
+  /* totals over every sale, not only the latest 200 shown */
+  const all=await fetchAllSales("price,sold_on");
+  const today=isoToday(),month=today.slice(0,7);let tt=0,tm=0,ta=0;
+  all.forEach(x=>{const v=Number(x.price);ta+=v;if(x.sold_on===today)tt+=v;if(String(x.sold_on).slice(0,7)===month)tm+=v});
+  D.tot={today:tt,month:tm,all:ta,count:all.length};
+}
+async function fetchAllSales(cols){
+  const out=[],page=1000;
+  for(let from=0;;from+=page){
+    const {data,error}=await sb.from("sales").select(cols).order("id",{ascending:true}).range(from,from+page-1);
+    if(error)throw error;out.push(...data);if(data.length<page)break;
+  }
+  return out;
+}
+function csvCell(v){v=String(v==null?"":v);if(/^[=+\-@]/.test(v))v="'"+v;return /[",\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
+async function downloadSalesCsv(){
+  const rows=await fetchAllSales("invoice_no,sold_on,book_title,buyer,phone,price,method");
+  const head=[t("receiptNo"),t("date"),t("book"),t("member"),t("phone"),t("amount")+" ("+D.lib.currency+")",t("method")];
+  const lines=[head.map(csvCell).join(",")].concat(rows.map(r=>[r.invoice_no,r.sold_on,r.book_title,r.buyer,null,Number(r.price).toFixed(2),r.method==="cash"?t("cash"):t("transfer")].map((v,i)=>i===4?(/^\+?\d+$/.test(String(r.phone||""))?'="'+r.phone+'"':csvCell(r.phone)):csvCell(v)).join(",")));
+  const blob=new Blob(["\ufeff"+lines.join("\r\n")],{type:"text/csv;charset=utf-8"});
+  const url=URL.createObjectURL(blob),a=document.createElement("a");
+  a.href=url;a.download="sales-"+isoToday()+".csv";document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),10000);
+  return rows.length;
 }
 async function loadLibrary(){
   let {data,error}=await sb.from("libraries").select("*").maybeSingle();
@@ -560,7 +584,7 @@ function membersView(){
 }
 function reportsView(){
   const today=isoToday(),ol=D.loans,overdue=ol.filter(x=>x.due_date<today);
-  const totalSales=D.sales.reduce((s,x)=>s+Number(x.price),0);
+  const tot=D.tot||{today:0,month:0,all:0,count:0};
   const loanRow=x=>{const b=bookById(x.book_id),m=memberById(x.member_id);const late=daysBetween(x.due_date,today);
     return `<tr><td>${esc(m?m.name:"?")}<div class="muted" style="font-size:.85rem">${esc(m?m.phone:"")}</div></td><td>${esc(b?b.title:"?")}</td><td>${esc(x.due_date)}</td>
     <td class="num">${late>0?`<span class="pill bad">${late}</span>`:`<span class="pill">0</span>`}</td>
@@ -571,12 +595,17 @@ function reportsView(){
    <div class="tile"><b>${D.books.reduce((s,b)=>s+b.copies,0)}</b><span>${t("tCopies")}</span></div>
    <div class="tile"><b>${ol.length}</b><span>${t("tOnLoan")}</span></div>
    <div class="tile ${overdue.length?"alert":""}"><b>${overdue.length}</b><span>${t("tOverdue")}</span></div>
-   <div class="tile"><b>${money(totalSales)}</b><span>${t("tSales")}</span></div></div>
+   </div>
+  <div class="tiles">
+   <div class="tile"><b>${money(tot.today)}</b><span>${t("salesToday")}</span></div>
+   <div class="tile"><b>${money(tot.month)}</b><span>${t("salesMonth")}</span></div>
+   <div class="tile"><b>${money(tot.all)}</b><span>${t("tSales")} (${tot.count})</span></div></div>
   <h2>${t("overdueList")}</h2>
   ${overdue.length?`<div class="tablewrap" style="margin-bottom:20px"><table>${head}<tbody>${overdue.map(loanRow).join("")}</tbody></table></div>`:`<p class="muted">${t("noOverdue")}</p>`}
   <h2>${t("currentLoans")}</h2>
   ${ol.length?`<div class="tablewrap" style="margin-bottom:20px"><table>${head}<tbody>${ol.map(loanRow).join("")}</tbody></table></div>`:`<p class="muted">${t("noLoans")}</p>`}
-  <h2>${t("salesList")}</h2>
+  <div class="row" style="align-items:center;justify-content:space-between;margin-bottom:8px"><h2 style="margin:0;flex:0 1 auto">${t("salesList")}</h2>
+  ${tot.count?`<button class="btn primary" style="flex:0 0 auto" data-act="exportcsv">${t("exportCsv")}</button>`:""}</div>
   ${D.sales.length?`<div class="tablewrap"><table><thead><tr><th>${t("receiptNo")}</th><th>${t("date")}</th><th>${t("book")}</th><th>${t("member")}</th><th class="num">${t("amount")}</th></tr></thead><tbody>${D.sales.map(s=>`<tr><td>${esc(s.invoice_no)}</td><td>${esc(s.sold_on)}</td><td>${esc(s.book_title)}</td><td>${esc(s.buyer||"-")}</td><td class="num">${money(s.price)}</td></tr>`).join("")}</tbody></table></div>`:`<p class="muted">${t("noSales")}</p>`}`;
 }
 function settingsView(){
@@ -628,6 +657,7 @@ document.addEventListener("click",e=>{
     const {error}=await sb.from("books").delete().eq("id",id);if(error)throw error});
   else if(a==="delmember")act(async()=>{ui.confirmDel=null;const {error}=await sb.from("members").delete().eq("id",id);if(error)throw error});
   else if(a==="printlabels"){try{window.print()}catch(err){}}
+  else if(a==="exportcsv")act(async()=>{const n=await downloadSalesCsv();ui.msg=t("exported").replace("{n}",n)});
   else if(a==="markret")act(async()=>{await rpc("return_loan",{p_loan_id:id})});
 });
 
