@@ -193,6 +193,7 @@ const onLoanCount=bookId=>D.loans.filter(l=>l.book_id===bookId).length;
 const availOf=b=>b.copies-onLoanCount(b.id);
 const asciiDigits=v=>String(v==null?"":v).replace(/[০-৯]/g,c=>String(c.charCodeAt(0)-0x09E6)).replace(/[٠-٩]/g,c=>String(c.charCodeAt(0)-0x0660));
 const num=v=>{const x=parseFloat(asciiDigits(v).replace(/,/g,".").replace(/[^\d.]/g,""));return isFinite(x)?x:NaN};
+const isTouch=(()=>{try{return matchMedia("(pointer: coarse)").matches}catch(e){return false}})();
 const normPhone=p=>asciiDigits(p).replace(/[^\d+]/g,"");
 
 /* map database error codes to friendly text */
@@ -388,7 +389,7 @@ function render(){
       <button class="btn lang" data-act="lang">${lang==="bn"?"English":"বাংলা"}</button>
       <button class="btn" data-act="unlockform">${t("exitKiosk")}</button></div></div>`;
     if(ui.unlocking){
-      head+=`<form class="card" data-form="unlock" style="max-width:420px;margin:0 auto 16px"><div class="field"><label for="upass">${t("exitHint")}</label><input id="upass" type="password" autocomplete="off"></div>${ui.err?`<div class="err">${esc(ui.err)}</div>`:""}<div class="actions"><button class="btn primary" type="submit">${t("unlock")}</button><button class="btn" type="button" data-act="unlockcancel">${t("cancel")}</button></div></form>`;
+      head+=`<form class="card" data-form="unlock" style="max-width:420px;margin:0 auto 16px"><div class="field"><label for="upass">${t("exitHint")}</label><input id="upass" type="password" autocomplete="off" autocapitalize="none" spellcheck="false" style="font-size:1.3rem;text-align:center;letter-spacing:.2em"></div>${ui.err?`<div class="err">${esc(ui.err)}</div>`:""}<div class="actions"><button class="btn primary" type="submit">${t("unlock")}</button><button class="btn" type="button" data-act="unlockcancel">${t("cancel")}</button></div></form>`;
     }
   }else{
     head=`<div class="top"><div class="brand">${esc(D.lib.name)}<small>${esc(t("appname"))}</small></div>
@@ -398,14 +399,14 @@ function render(){
       <button class="btn" data-act="logout">${t("logout")}</button></div></div>`;
   }
   const tab=ui.locked?"kiosk":ui.tab;
-  const body={kiosk:kioskView,books:booksView,members:membersView,reports:reportsView,settings:settingsView}[tab]();
+  const body=ui.locked&&ui.unlocking?"":{kiosk:kioskView,books:booksView,members:membersView,reports:reportsView,settings:settingsView}[tab]();
   $app.innerHTML=head+`<div class="${ui.busy?"busy":""}">${body}</div>`;
   afterRender(tab);
 }
 function afterRender(tab){
-  if(tab==="kiosk"&&ui.k.step==="scan"){const i=document.getElementById("scan");if(i)i.focus({preventScroll:true})}
+  if(tab==="kiosk"&&ui.k.step==="scan"&&!ui.unlocking&&!isTouch){const i=document.getElementById("scan");if(i)i.focus({preventScroll:true})}
   if(tab==="kiosk"&&ui.k.step==="borrow"){const i=document.getElementById("kphone");if(i)i.focus()}
-  if(ui.unlocking){const i=document.getElementById("upass");if(i)i.focus()}
+  if(ui.unlocking){window.scrollTo(0,0);const i=document.getElementById("upass");if(i)i.focus()}
   if(tab==="books"&&ui.prefillIsbn){const i=document.getElementById("ni");if(i)i.value=ui.prefillIsbn;ui.prefillIsbn="";const n=document.getElementById("nt");if(n)n.focus()}
   if(tab==="books"&&window.JsBarcode){
     document.querySelectorAll("svg[data-code]").forEach(s=>{
@@ -577,7 +578,7 @@ document.addEventListener("click",e=>{
   const el=e.target.closest("[data-act]");
   if(!el){
     const tab=ui.locked?"kiosk":ui.tab;
-    if(D.lib&&tab==="kiosk"&&ui.k.step==="scan"&&!e.target.closest("input,button,select,a,label")){const i=document.getElementById("scan");if(i)i.focus()}
+    if(D.lib&&tab==="kiosk"&&ui.k.step==="scan"&&!ui.unlocking&&!isTouch&&!e.target.closest("input,button,select,a,label,form")){const i=document.getElementById("scan");if(i)i.focus()}
     return;
   }
   const a=el.dataset.act,v=el.dataset.v,id=Number(el.dataset.id);
