@@ -97,6 +97,19 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .busy{opacity:.6;pointer-events:none}
 @media (prefers-reduced-motion:no-preference){.card,.receipt{animation:rise .18s ease-out}}
 @keyframes rise{from{opacity:.4;transform:translateY(4px)}to{opacity:1;transform:none}}
+.labeltools{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;margin:8px 0 14px}
+.labeltools label{display:flex;gap:8px;align-items:center;margin:0;color:var(--ink);font-size:.95rem}
+.labeltools input[type=checkbox]{width:20px;min-height:20px;height:20px}
+@media print{
+  @page{margin:8mm}
+  body{background:#fff}
+  body *{visibility:hidden}
+  #labelsec,#labelsec *{visibility:visible}
+  #labelsec{position:absolute;left:0;top:0;width:100%}
+  #labelsec .noprint{display:none}
+  .labels{grid-template-columns:repeat(3,1fr);gap:4mm}
+  .label{border:1px dashed #999;break-inside:avoid;animation:none}
+}
 </style>
 </head>
 <body>
@@ -140,7 +153,7 @@ bn:{
  tBooks:"বইয়ের নাম", tCopies:"মোট কপি", tOnLoan:"ধারে আছে", tOverdue:"বকেয়া", tSales:"মোট বিক্রি",
  overdueList:"বকেয়া তালিকা", daysLate:"দেরি (দিন)", noOverdue:"কোনো বকেয়া নেই।", currentLoans:"সব চলমান ধার", salesList:"বিক্রির তালিকা", noSales:"এখনো কোনো বিক্রি নেই।", noLoans:"কোনো চলমান ধার নেই।",
  setLoanDays:"ধারের সময় (দিন)", setMaxLoans:"একজন সর্বোচ্চ কয়টি বই নিতে পারবেন", setCurrency:"মুদ্রার চিহ্ন", save:"সংরক্ষণ", saved:"সংরক্ষিত হয়েছে।",
- addThis:"এই বইটা যোগ করুন", unlocked:"কিয়স্ক মোড বন্ধ হয়েছে। এখন সব ট্যাব ব্যবহার করতে পারবেন।", priceBad:"দাম একটা সংখ্যা হতে হবে।", noBooksYet:"আগে \"বই\" ট্যাবে বই যোগ করুন।", emptyBooks:"এখনো কোনো বই নেই। নিচের ফর্ম দিয়ে প্রথম বইটি যোগ করুন।", refresh:"রিফ্রেশ"
+ addThis:"এই বইটা যোগ করুন", labelsAll:"ISBN আছে এমন বইয়েরও লেবেল দেখাও", printLabels:"লেবেল প্রিন্ট করুন", printHint:"প্রতিটা কপির জন্য একটা করে লেবেল। প্রিন্ট করলে শুধু লেবেলগুলোই ছাপা হবে।", unlocked:"কিয়স্ক মোড বন্ধ হয়েছে। এখন সব ট্যাব ব্যবহার করতে পারবেন।", priceBad:"দাম একটা সংখ্যা হতে হবে।", noBooksYet:"আগে \"বই\" ট্যাবে বই যোগ করুন।", emptyBooks:"এখনো কোনো বই নেই। নিচের ফর্ম দিয়ে প্রথম বইটি যোগ করুন।", refresh:"রিফ্রেশ"
 },
 en:{
  appname:"Library Kiosk", cloud:"Data is stored online (Supabase), so you can sign in from any device.",
@@ -171,7 +184,7 @@ en:{
  tBooks:"Titles", tCopies:"Total copies", tOnLoan:"On loan", tOverdue:"Overdue", tSales:"Total sales",
  overdueList:"Overdue list", daysLate:"Days late", noOverdue:"Nothing is overdue.", currentLoans:"All open loans", salesList:"Sales", noSales:"No sales yet.", noLoans:"No open loans.",
  setLoanDays:"Loan period (days)", setMaxLoans:"Most books one member can borrow", setCurrency:"Currency symbol", save:"Save", saved:"Saved.",
- addThis:"Add this book", unlocked:"Kiosk mode is off. All tabs are available now.", priceBad:"The price must be a number.", noBooksYet:"Add books in the Books tab first.", emptyBooks:"No books yet. Add the first one with the form below.", refresh:"Refresh"
+ addThis:"Add this book", labelsAll:"Also show labels for books with an ISBN", printLabels:"Print labels", printHint:"One label per copy. Printing prints only the labels.", unlocked:"Kiosk mode is off. All tabs are available now.", priceBad:"The price must be a number.", noBooksYet:"Add books in the Books tab first.", emptyBooks:"No books yet. Add the first one with the form below.", refresh:"Refresh"
 }};
 
 /* ---------- state ---------- */
@@ -363,7 +376,9 @@ async function decodePhoto(file){
   return text;
 }
 document.addEventListener("change",e=>{
-  const el=e.target;if(!el||!el.classList||!el.classList.contains("priceedit"))return;
+  const el=e.target;
+  if(el&&el.id==="labelsall"){ui.labelsAll=el.checked;render();return}
+  if(!el||!el.classList||!el.classList.contains("priceedit"))return;
   const id=Number(el.dataset.id),v=num(el.value);
   if(!(v>=0)){ui.err=t("priceBad");render();return}
   act(async()=>{const {error}=await sb.from("books").update({price:v}).eq("id",id);if(error)throw error;ui.msg=t("saved")});
@@ -525,9 +540,14 @@ function booksView(){
     ${ui.msg?`<div class="ok">${esc(ui.msg)}</div>`:""}
     <button class="btn primary" type="submit">${t("add")}</button></form>
   ${D.books.length?`<div class="tablewrap" style="margin-bottom:20px"><table><thead><tr><th>${t("code")}</th><th>${t("title")}</th><th class="num">${t("copies")}</th><th class="num">${t("avail")}</th><th class="num">${t("price")}</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`:`<p class="muted">${t("emptyBooks")}</p>`}
-  <h2>${t("labelsTitle")}</h2><p class="muted">${t("labelsNote")}</p>
-  ${D.books.length&&D.books.every(b=>b.isbn)?`<p class="ok">${t("allHaveIsbn")}</p>`:""}
-  <div class="labels">${D.books.filter(b=>!b.isbn).map(b=>`<div class="label"><svg data-code="${esc(b.code)}" role="img" aria-label="${esc(b.code)}"></svg><div>${esc(b.title)}</div></div>`).join("")}</div>`;
+  ${(()=>{const list=D.books.filter(b=>ui.labelsAll||!b.isbn);const items=[];list.forEach(b=>{for(let i=0;i<Math.max(1,b.copies);i++)items.push(b)});
+  return `<section id="labelsec"><h2>${t("labelsTitle")}</h2>
+  <div class="noprint"><p class="muted">${t("labelsNote")}</p>
+  ${!ui.labelsAll&&D.books.length&&D.books.every(b=>b.isbn)?`<p class="ok">${t("allHaveIsbn")}</p>`:""}
+  <div class="labeltools"><label><input type="checkbox" id="labelsall" ${ui.labelsAll?"checked":""}> ${t("labelsAll")}</label>
+  ${items.length?`<button class="btn primary" data-act="printlabels">${t("printLabels")} (${items.length})</button>`:""}</div>
+  <p class="muted" style="font-size:.85rem">${t("printHint")}</p></div>
+  <div class="labels">${items.map(b=>`<div class="label"><svg data-code="${esc(b.code)}" role="img" aria-label="${esc(b.code)}"></svg><div>${esc(b.title)}</div></div>`).join("")}</div></section>`})()}`;
 }
 function membersView(){
   const rows=D.members.map(m=>`<tr><td>${esc(m.name)}</td><td>${esc(m.phone)}</td><td class="num">${D.loans.filter(x=>x.member_id===m.id).length}</td><td>${delCell("member",m.id)}</td></tr>`).join("");
@@ -607,6 +627,7 @@ document.addEventListener("click",e=>{
   else if(a==="delbook")act(async()=>{ui.confirmDel=null;if(onLoanCount(id)>0)throw new Error(t("onLoanNoRemove"));
     const {error}=await sb.from("books").delete().eq("id",id);if(error)throw error});
   else if(a==="delmember")act(async()=>{ui.confirmDel=null;const {error}=await sb.from("members").delete().eq("id",id);if(error)throw error});
+  else if(a==="printlabels"){try{window.print()}catch(err){}}
   else if(a==="markret")act(async()=>{await rpc("return_loan",{p_loan_id:id})});
 });
 
