@@ -140,7 +140,7 @@ bn:{
  tBooks:"বইয়ের নাম", tCopies:"মোট কপি", tOnLoan:"ধারে আছে", tOverdue:"বকেয়া", tSales:"মোট বিক্রি",
  overdueList:"বকেয়া তালিকা", daysLate:"দেরি (দিন)", noOverdue:"কোনো বকেয়া নেই।", currentLoans:"সব চলমান ধার", salesList:"বিক্রির তালিকা", noSales:"এখনো কোনো বিক্রি নেই।", noLoans:"কোনো চলমান ধার নেই।",
  setLoanDays:"ধারের সময় (দিন)", setMaxLoans:"একজন সর্বোচ্চ কয়টি বই নিতে পারবেন", setCurrency:"মুদ্রার চিহ্ন", save:"সংরক্ষণ", saved:"সংরক্ষিত হয়েছে।",
- emptyBooks:"এখনো কোনো বই নেই। নিচের ফর্ম দিয়ে প্রথম বইটি যোগ করুন।", refresh:"রিফ্রেশ"
+ addThis:"এই বইটা যোগ করুন", noBooksYet:"আগে \"বই\" ট্যাবে বই যোগ করুন।", emptyBooks:"এখনো কোনো বই নেই। নিচের ফর্ম দিয়ে প্রথম বইটি যোগ করুন।", refresh:"রিফ্রেশ"
 },
 en:{
  appname:"Library Kiosk", cloud:"Data is stored online (Supabase), so you can sign in from any device.",
@@ -171,7 +171,7 @@ en:{
  tBooks:"Titles", tCopies:"Total copies", tOnLoan:"On loan", tOverdue:"Overdue", tSales:"Total sales",
  overdueList:"Overdue list", daysLate:"Days late", noOverdue:"Nothing is overdue.", currentLoans:"All open loans", salesList:"Sales", noSales:"No sales yet.", noLoans:"No open loans.",
  setLoanDays:"Loan period (days)", setMaxLoans:"Most books one member can borrow", setCurrency:"Currency symbol", save:"Save", saved:"Saved.",
- emptyBooks:"No books yet. Add the first one with the form below.", refresh:"Refresh"
+ addThis:"Add this book", noBooksYet:"Add books in the Books tab first.", emptyBooks:"No books yet. Add the first one with the form below.", refresh:"Refresh"
 }};
 
 /* ---------- state ---------- */
@@ -242,11 +242,20 @@ async function act(fn){
 }
 
 /* ---------- actions ---------- */
+/* ISBN-10 <-> ISBN-13, so either form printed on a book finds it */
+function isbnForms(d){
+  const out=[d];
+  if(/^\d{9}[\dX]$/.test(d)){const b="978"+d.slice(0,9);let s=0;for(let i=0;i<12;i++)s+=(+b[i])*(i%2?3:1);out.push(b+((10-s%10)%10))}
+  if(/^978\d{10}$/.test(d)){const b=d.slice(3,12);let s=0;for(let i=0;i<9;i++)s+=(+b[i])*(10-i);const c=(11-s%11)%11;out.push(b+(c===10?"X":c))}
+  return out;
+}
+function isbnDigits(raw){return String(raw||"").toUpperCase().replace(/[^\dX]/g,"")}
+function looksIsbn(raw){const d=isbnDigits(raw);return /^\d{9}[\dX]$/.test(d)||/^\d{13}$/.test(d)}
 function findBook(raw){
   const q=String(raw||"").trim().toUpperCase();if(!q)return null;
-  const digits=q.replace(/[\s-]/g,"");
+  const digits=isbnDigits(q);
   let b=D.books.find(x=>x.code.toUpperCase()===q);
-  if(!b&&/^\d{10,13}$/.test(digits))b=D.books.find(x=>x.isbn&&x.isbn===digits);
+  if(!b&&looksIsbn(q)){const f=isbnForms(digits);b=D.books.find(x=>x.isbn&&f.includes(x.isbn))}
   if(!b&&/^\d{1,6}$/.test(q))b=D.books.find(x=>x.id===Number(q));
   return b||null;
 }
@@ -269,7 +278,7 @@ function onScanned(raw){
   if(!ui.cam&&!ui.photoBusy)return;
   stopCam();ui.cam=false;ui.photoBusy=false;ui.err="";ui.msg="";
   const b=findBook(raw);
-  if(b)ui.k={step:"book",bookId:b.id};else ui.err=t("notFound")+" ("+String(raw).slice(0,20)+")";
+  if(b)ui.k={step:"book",bookId:b.id};else{ui.err=t("notFound")+" ("+String(raw).slice(0,20)+")";ui.unknownIsbn=looksIsbn(raw)?isbnDigits(raw):""}
   render();
 }
 async function startCam(){
@@ -335,6 +344,7 @@ function afterRender(tab){
   if(tab==="kiosk"&&ui.k.step==="scan"){const i=document.getElementById("scan");if(i)i.focus()}
   if(tab==="kiosk"&&ui.k.step==="borrow"){const i=document.getElementById("kphone");if(i)i.focus()}
   if(ui.unlocking){const i=document.getElementById("upass");if(i)i.focus()}
+  if(tab==="books"&&ui.prefillIsbn){const i=document.getElementById("ni");if(i)i.value=ui.prefillIsbn;ui.prefillIsbn="";const n=document.getElementById("nt");if(n)n.focus()}
   if(tab==="books"&&window.JsBarcode){
     document.querySelectorAll("svg[data-code]").forEach(s=>{
       try{JsBarcode(s,s.getAttribute("data-code"),{format:"CODE128",height:42,width:2,fontSize:13,margin:2,background:"#ffffff",lineColor:"#000000"})}catch(e){}
@@ -366,7 +376,7 @@ function kioskView(){
       <input id="scan" autocomplete="off" inputmode="text" autocapitalize="characters" spellcheck="false" aria-label="${t("code")}">
       ${ui.err?`<div class="err" style="text-align:center">${esc(ui.err)}</div>`:""}
       ${ui.msg?`<div class="ok" style="text-align:center;margin-top:8px">${esc(ui.msg)}</div>`:""}
-      <div class="actions" style="justify-content:center"><button class="btn primary" type="submit">${t("scanBtn")}</button></div>
+      <div class="actions" style="justify-content:center"><button class="btn primary" type="submit">${t("scanBtn")}</button>${ui.err&&ui.unknownIsbn&&!ui.locked?`<button class="btn" type="button" data-act="addisbn">${t("addThis")} (ISBN ${esc(ui.unknownIsbn)})</button>`:""}</div>
     </form>
     <div class="card" style="margin-top:16px">
       ${ui.cam?`<div class="camwrap"><video id="cam" playsinline muted></video><div class="frame"></div><div class="tip">${t("camHint")}</div></div>
@@ -511,6 +521,7 @@ document.addEventListener("click",e=>{
   const a=el.dataset.act,v=el.dataset.v,id=Number(el.dataset.id);
   if(a==="camstart"){startCam();return}
   if(a==="camstop"){ui.cam=false;stopCam();render();return}
+  if(a==="addisbn"){ui.prefillIsbn=ui.unknownIsbn;ui.unknownIsbn="";ui.err="";ui.msg="";ui.tab="books";render();return}
   if(a==="lang")go(()=>{lang=lang==="bn"?"en":"bn";try{localStorage.setItem("library-kiosk-lang",lang)}catch(e){}});
   else if(a==="authtab")go(()=>{ui.authTab=v});
   else if(a==="logout"){ui.tab="kiosk";ui.k={step:"scan"};sb.auth.signOut()}
@@ -560,8 +571,8 @@ document.addEventListener("submit",e=>{
     act(async()=>{const {error}=await sb.auth.signInWithPassword({email:D.user.email,password:entered});
       if(error)throw new Error(t("wrongPass"));ui.locked=false;ui.unlocking=false});
   }else if(kind==="scan"){
-    const b=findBook(val("scan"));
-    if(b)ui.k={step:"book",bookId:b.id};else ui.err=t("notFound");
+    const raw=val("scan"),b=findBook(raw);
+    if(b)ui.k={step:"book",bookId:b.id};else{ui.err=t("notFound")+(D.books.length?"":" "+t("noBooksYet"));ui.unknownIsbn=looksIsbn(raw)?isbnDigits(raw):""}
     render();
   }else if(kind==="borrow"){
     const b=bookById(ui.k.bookId);
@@ -580,11 +591,11 @@ document.addEventListener("submit",e=>{
       ui.k={step:"receipt",receipt:{kind:"sale",no:s.invoice_no,date:s.sold_on,book:s.book_title,who:s.buyer||"-",amount:Number(s.price),method:s.method}};
     });
   }else if(kind==="addbook"){
-    const title=val("nt").trim(),isbn=val("ni").replace(/[\s-]/g,"");
+    const title=val("nt").trim(),rawIsbn=isbnDigits(val("ni")),isbn=rawIsbn?(isbnForms(rawIsbn).find(x=>x.length===13)||rawIsbn):"";
     const copies=Math.max(1,parseInt(val("nn"),10)||1);
     if(!title){ui.err=t("fillAll");render();return}
-    if(isbn&&!/^\d{10}$|^\d{13}$/.test(isbn)){ui.err=t("isbnBad");render();return}
-    const dup=isbn?D.books.find(x=>x.isbn===isbn):null;
+    if(rawIsbn&&!looksIsbn(rawIsbn)){ui.err=t("isbnBad");render();return}
+    const dup=isbn?findBook(isbn):null;
     act(async()=>{
       if(dup){const {error}=await sb.from("books").update({copies:dup.copies+copies}).eq("id",dup.id);if(error)throw error;ui.msg=t("isbnAdded");return}
       const {error}=await sb.from("books").insert({library_id:D.lib.id,code:"",isbn:isbn||null,title,author:val("na").trim(),category:val("nc").trim(),copies,price:Math.max(0,parseFloat(val("np"))||0)});
